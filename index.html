@@ -195,6 +195,88 @@
     .btn-close-admin:hover { background:rgba(255,255,255,0.22); }
     .admin-body { max-width:1300px; margin:0 auto; padding:clamp(16px,3vw,32px) clamp(12px,3vw,28px); }
 
+    /* Admin KPI cards */
+    .admin-kpis {
+      display:grid;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      gap:12px;
+      margin: 10px 0 18px;
+    }
+    @media (min-width: 640px) {
+      .admin-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    .kpi-card {
+      border-radius:18px;
+      padding:14px 16px;
+      border:1px solid #e0e7ff;
+      background:white;
+      box-shadow:0 10px 30px rgba(15,23,42,0.06);
+      overflow:hidden;
+      position:relative;
+    }
+    .kpi-card::before{
+      content:'';
+      position:absolute; inset:0;
+      background: radial-gradient(800px 140px at 20% 0%, rgba(99,102,241,.10), transparent 55%),
+                  radial-gradient(800px 140px at 80% 0%, rgba(236,72,153,.10), transparent 55%);
+      pointer-events:none;
+    }
+    .kpi-top {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      position:relative;
+    }
+    .kpi-label {
+      font-size:11px;
+      font-weight:900;
+      color:#64748b;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+    .kpi-value {
+      margin-top:6px;
+      font-size:22px;
+      font-weight:900;
+      color:#0f172a;
+      position:relative;
+    }
+    .kpi-sub {
+      margin-top:6px;
+      font-size:12px;
+      font-weight:800;
+      color:#64748b;
+      position:relative;
+    }
+    .kpi-icon {
+      width:40px; height:40px;
+      border-radius:14px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:18px;
+      border:1px solid rgba(255,255,255,.35);
+      position:relative;
+    }
+    .kpi-income { background: linear-gradient(135deg,#ecfdf5,#d1fae5); border-color:#a7f3d0; }
+    .kpi-income .kpi-icon { background: linear-gradient(135deg,#10b981,#059669); color:white; }
+    .kpi-spent  { background: linear-gradient(135deg,#eef2ff,#e0e7ff); border-color:#c7d2fe; }
+    .kpi-spent  .kpi-icon { background: linear-gradient(135deg,#6366f1,#4338ca); color:white; }
+    .kpi-rem    { background: linear-gradient(135deg,#fff7ed,#ffedd5); border-color:#fed7aa; }
+    .kpi-rem .kpi-icon    { background: linear-gradient(135deg,#f59e0b,#d97706); color:white; }
+    .kpi-negative .kpi-value { color:#b91c1c; }
+    .kpi-negative { background: linear-gradient(135deg,#fef2f2,#ffe4e6); border-color:#fecaca; }
+    .kpi-negative .kpi-icon { background: linear-gradient(135deg,#ef4444,#b91c1c); color:white; }
+    .kpi-tag {
+      display:inline-flex; align-items:center; gap:6px;
+      font-size:11px; font-weight:900;
+      padding:5px 10px;
+      border-radius:999px;
+      border:1px solid rgba(99,102,241,.25);
+      background: rgba(99,102,241,.08);
+      color:#4338ca;
+      position:relative;
+    }
+
     .admin-expenses-wrap { background:white; border-radius:20px; padding:clamp(16px,3vw,24px); border:1px solid #e0e7ff; }
     .admin-filters { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
     .admin-select {
@@ -280,7 +362,7 @@
   </div>
 </div>
 
-<!-- ════════ REACT APP (Primary only) ���═══════ -->
+<!-- ════════ REACT APP (Primary only) ════════ -->
 <div id="app-screen">
   <div id="root"></div>
 </div>
@@ -291,7 +373,7 @@
     <div style="display:flex;flex-direction:column;gap:2px">
       <h1>🛡 متابعة المصروفات</h1>
       <div id="admin-summary-bar" style="font-size:12px;font-weight:800;opacity:.9;color:#e0e7ff">
-        جاري حساب الملخص...
+        عرض: كل السجل
       </div>
     </div>
     <button class="btn-close-admin" id="btn-close-admin">✕ إغلاق</button>
@@ -386,7 +468,7 @@
   });
 
   // ──────────────────────────────────────────────────────────────
-  // Admin: view + edit + delete + summary (spent + income + remaining)
+  // Admin: view + edit + delete + KPI cards (spent + income + remaining)
   // ──────────────────────────────────────────────────────────────
 
   function escapeHtml(str) {
@@ -408,18 +490,51 @@
     return _DEF_INCOME;
   }
 
-  function _renderAdminSummary({ fm, fc, income, spent, remaining }) {
+  function _setAdminTopbarFilterText(fm, fc) {
     const el = document.getElementById('admin-summary-bar');
     if (!el) return;
-
     const labelMonth = (fm && fm !== 'الكل') ? `شهر ${fm}` : 'كل السجل';
     const labelCat = (fc && fc !== 'الكل') ? ` | تصنيف: ${fc}` : '';
+    el.textContent = `عرض: ${labelMonth}${labelCat}`;
+  }
 
-    el.textContent =
-      `${labelMonth}${labelCat} — ` +
-      `الدخل: ${Number(income).toLocaleString()} ج.م` +
-      ` — المصروفات: ${Number(spent).toLocaleString()} ج.م` +
-      ` — المتبقي: ${Number(remaining).toLocaleString()} ج.م`;
+  function _adminKpisHtml(income, spent, remaining) {
+    return `
+      <div class="admin-kpis">
+        <div class="kpi-card kpi-income">
+          <div class="kpi-top">
+            <div>
+              <div class="kpi-label">الدخل الشهري</div>
+              <div class="kpi-value">${Number(income).toLocaleString()} <span style="font-size:12px;font-weight:800;color:#64748b">ج.م</span></div>
+              <div class="kpi-sub"><span class="kpi-tag">مصدره: الإعدادات</span></div>
+            </div>
+            <div class="kpi-icon">💵</div>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-spent">
+          <div class="kpi-top">
+            <div>
+              <div class="kpi-label">إجمالي المصروفات</div>
+              <div class="kpi-value">${Number(spent).toLocaleString()} <span style="font-size:12px;font-weight:800;color:#64748b">ج.م</span></div>
+              <div class="kpi-sub">حسب الفلاتر الحالية</div>
+            </div>
+            <div class="kpi-icon">🧾</div>
+          </div>
+        </div>
+
+        <div class="kpi-card ${remaining < 0 ? 'kpi-negative' : 'kpi-rem'}">
+          <div class="kpi-top">
+            <div>
+              <div class="kpi-label">المتبقي</div>
+              <div class="kpi-value">${Number(remaining).toLocaleString()} <span style="font-size:12px;font-weight:800;color:#64748b">ج.م</span></div>
+              <div class="kpi-sub">${remaining < 0 ? '⚠️ تم تجاوز الدخل' : 'متبقي من الدخل'}</div>
+            </div>
+            <div class="kpi-icon">${remaining < 0 ? '⚠️' : '📌'}</div>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   // Admin local cache
@@ -452,7 +567,7 @@
       await renderAdminExpenses('الكل','الكل');
     } catch (e) {
       console.error(e);
-      wrap.innerHTML = `<div class="no-selection" style="color:#ef4444">❌ خطأ: ${e.message}</div>`;
+      wrap.innerHTML = `<div class="no-selection" style="color:#ef4444">�� خطأ: ${e.message}</div>`;
     }
   }
 
@@ -466,16 +581,16 @@
     const list = expenses.filter(e => (fm==='الكل'||e.date?.startsWith(fm)) && (fc==='الكل'||e.category===fc));
     const total = list.reduce((s,e)=>s+(e.amount||0),0);
 
-    // Summary (income + remaining)
     const income = await _getPrimaryIncome();
     const remaining = income - total;
 
     window._admFilt = { fm, fc };
 
-    // update topbar summary
-    _renderAdminSummary({ fm, fc, income, spent: total, remaining });
+    _setAdminTopbarFilterText(fm, fc);
 
     wrap.innerHTML = `
+      ${_adminKpisHtml(income, total, remaining)}
+
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
         <div>
           <h3 style="font-size:15px;font-weight:900;color:#1e1b4b;margin:0">مصروفات: ${escapeHtml(adminData.profile?.displayName || 'المستخدم الأساسي')}</h3>
@@ -616,7 +731,7 @@
 
       // user bar always visible after login
       document.getElementById('user-bar').classList.add('show');
-      document.getElementById('user-name').textContent = user.displayName || user.email || '';
+      document.getElementById('user-name').textContent = user.displayName || '';
       document.getElementById('user-avatar').src = user.photoURL || '';
 
       // save profile
@@ -663,7 +778,7 @@ const CATS = [
   'خضار وفاكهه','فراخ','لحوم','علافة و توابل','مسحوق غسيل',
   'مناديل','منظفات ارضيات','معجون','زيت وسمن','مكرونة و رز',
   'صوصات وصلصة','شامبو وكريمات','عيش و فينو','مخبوزات',
-  'جبن و البان','سوبر ماركت','أدوية','صيدلية','أخرى'
+  'جبن و البان','سوبر ماركت','صيدلية','مواصلات','أخرى'
 ];
 const COLORS = ['#6366F1','#EF4444','#10B981','#F59E0B','#8B5CF6','#EC4899','#06B6D4','#F97316','#14B8A6','#F43F5E'];
 
