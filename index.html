@@ -353,15 +353,6 @@
     waitFb(() => {
         window._fb.onAuthStateChanged(window._fb.auth, async (user) => {
             if (user) {
-            <!-- أضف هذا داخل نفس الملف (مؤقت) -->
-<script>
-/* داخل onAuthStateChanged بعد if (user) مباشرة */
-console.log('SIGNED IN USER:', { uid: user.uid, email: user.email });
-if (!localStorage.getItem('uid_captured_once')) {
-  localStorage.setItem('uid_captured_once', 'true');
-  alert('UID حسابك هو:\n' + user.uid + '\n\nابعتِيه لصاحب التطبيق لإضافته في قواعد الحماية.');
-}
-</script>
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('user-bar').classList.add('show');
                 document.getElementById('app-screen').classList.add('show');
