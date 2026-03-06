@@ -43,6 +43,8 @@
             updateDoc, getDoc
         };
         window._ADMIN_UID = 'j1l7huaXciN54etwobUCJdI7syy1';
+        // UID الزوجة (اللي بتسجل المصروفات)
+        window._WIFE_UID  = 'DjCKr8TgoyV1PW2y8ca6K2wzNho1';
         window.dispatchEvent(new Event('fb-ready'));
     </script>
 
@@ -234,8 +236,8 @@
             </div>
 
             <div class="admin-hint">
+                • الزوجة فقط تسجل المصروفات، والأدمن للمتابعة + تعديل/حذف عند الحاجة.<br>
                 • التنبيهات متدرجة تلقائيًا عند الوصول إلى 75% ثم 85% ثم 95% من الميزانية.<br>
-                • تظهر صفحة الإعدادات للأدمن فقط.<br>
                 • هذه الإعدادات تنطبق على كل الشهور (افتراضيًا).
             </div>
         </div>
@@ -319,7 +321,11 @@
         const user = window._fb.auth.currentUser;
         if (!user) return;
         const { db, doc, getDoc, setDoc } = window._fb;
-        const ref = doc(db, 'users', user.uid, 'settings', 'main');
+
+        // IMPORTANT:
+        // settings تُخزن تحت UID الزوجة دائمًا (لأنها "حساب البيت" الفعلي)
+        const ref = doc(db, 'users', window._WIFE_UID, 'settings', 'main');
+
         const snap = await getDoc(ref);
         let s = snap.exists() ? (snap.data() || {}) : {};
         // bootstrap
@@ -351,7 +357,8 @@
             if (!(income >= 0) || !(budget > 0)) return alert('أدخل قيم صحيحة');
 
             const { db, doc, setDoc } = window._fb;
-            await setDoc(doc(db, 'users', user.uid, 'settings', 'main'), {
+            // IMPORTANT: write settings under wife's UID (house data)
+            await setDoc(doc(db, 'users', window._WIFE_UID, 'settings', 'main'), {
                 defaultMonthlyIncome: income,
                 monthlyBudget: budget,
                 notifyLevels: [75,85,95],
@@ -394,7 +401,7 @@ const App = () => {
     const [expenses,setExpenses]   = useState([]);
     const [user,setUser]           = useState(null);
 
-    // settings
+    // settings (تُقرأ من UID الزوجة دائمًا)
     const [settings, setSettings] = useState({ defaultMonthlyIncome: 16500, monthlyBudget: 16500, notifyLevels: [75,85,95] });
 
     // expense form
@@ -417,10 +424,15 @@ const App = () => {
     const [editDate, setEditDate] = useState(new Date().toISOString().split('T')[0]);
 
     const isAdmin = !!user && user.uid === window._ADMIN_UID;
+    const isWife  = !!user && user.uid === window._WIFE_UID;
 
-    const loadSettings = async (uid) => {
+    // IMPORTANT:
+    // كل البيانات "بيت واحد" = تحت UID الزوجة
+    const dataUid = window._WIFE_UID;
+
+    const loadSettings = async () => {
         const { db, doc, getDoc, setDoc } = window._fb;
-        const ref = doc(db, 'users', uid, 'settings', 'main');
+        const ref = doc(db, 'users', dataUid, 'settings', 'main');
         const snap = await getDoc(ref);
         const defaults = { defaultMonthlyIncome: 16500, monthlyBudget: 16500, notifyLevels: [75,85,95] };
 
@@ -443,8 +455,10 @@ const App = () => {
                 if (window._fbUnsub) { window._fbUnsub(); window._fbUnsub = null; }
 
                 if (u) {
-                    loadSettings(u.uid).catch(()=>{});
-                    const q = query(collection(db,'users',u.uid,'expenses'),orderBy('createdAt','desc'));
+                    // load settings + subscribe expenses for wifeUid (house data)
+                    loadSettings().catch(()=>{});
+
+                    const q = query(collection(db,'users',dataUid,'expenses'),orderBy('createdAt','desc'));
                     window._fbUnsub = onSnapshot(q, s => setExpenses(s.docs.map(d=>({id:d.id,...d.data()}))));
                 } else {
                     setExpenses([]);
@@ -478,7 +492,7 @@ const App = () => {
     const budgetPct = useMemo(() => monthlyBudget ? (total / monthlyBudget) * 100 : 0, [total, monthlyBudget]);
     const remaining = useMemo(() => monthlyIncome - total, [monthlyIncome, total]);
 
-    // Progressive alerts (75/85/95) for current month only (not "all")
+    // Progressive alerts (75/85/95) for selected month only (not "all")
     useEffect(() => {
         if (!user) return;
         if (!monthlyBudget || monthlyBudget <= 0) return;
@@ -491,7 +505,7 @@ const App = () => {
             if (!reached) return;
 
             const { db, doc, getDoc, setDoc, updateDoc } = window._fb;
-            const ref = doc(db, 'users', user.uid, 'settings', `alerts_${fMonth}`);
+            const ref = doc(db, 'users', dataUid, 'settings', `alerts_${fMonth}`);
             const snap = await getDoc(ref);
 
             if (!snap.exists()) {
@@ -510,13 +524,16 @@ const App = () => {
 
     const addExpense = async ev => {
         ev.preventDefault();
-        if (!title||!amount||!user) return;
+        // الزوجة فقط تضيف
+        if (!isWife) return alert('الإضافة مسموحة للزوجة فقط');
+
+        if (!title||!amount) return;
 
         const val = parseFloat(amount);
         if (!(val > 0)) return alert('أدخل مبلغ صحيح');
 
         const {db,collection,addDoc}=window._fb;
-        await addDoc(collection(db,'users',user.uid,'expenses'),{
+        await addDoc(collection(db,'users',dataUid,'expenses'),{
             title,
             amount: val,
             category: cat,
@@ -531,12 +548,16 @@ const App = () => {
     };
 
     const delExpense = async id => {
+        // التعديل/الحذف: للزوجة + للأدمن
+        if (!(isWife || isAdmin)) return alert('غير مصرح');
         if (!confirm('هل أنت متأكد من حذف هذا البند؟')) return;
         const {db,doc,deleteDoc}=window._fb;
-        await deleteDoc(doc(db,'users',user.uid,'expenses',id));
+        await deleteDoc(doc(db,'users',dataUid,'expenses',id));
     };
 
     const openEdit = (exp) => {
+        // التعديل: للزوجة + للأدمن
+        if (!(isWife || isAdmin)) return alert('غير مصرح');
         setEditExp(exp);
         setEditTitle(exp.title || '');
         setEditAmount(String(exp.amount ?? ''));
@@ -546,17 +567,19 @@ const App = () => {
 
     const saveEdit = async () => {
         if (!user || !editExp) return;
+        if (!(isWife || isAdmin)) return alert('غير مصرح');
 
         const val = parseFloat(editAmount);
         if (!editTitle.trim() || !(val > 0)) return alert('أدخل بيانات صحيحة');
 
         const { db, doc, updateDoc } = window._fb;
-        await updateDoc(doc(db,'users',user.uid,'expenses',editExp.id),{
+        await updateDoc(doc(db,'users',dataUid,'expenses',editExp.id),{
             title: editTitle.trim(),
             amount: val,
             category: editCat,
             date: editDate,
-            updatedAt: Date.now()
+            updatedAt: Date.now(),
+            updatedBy: user.uid
         });
 
         setEditExp(null);
@@ -605,7 +628,7 @@ const App = () => {
                 {reminder && (
                     <div className="bg-amber-50 border-2 border-amber-200 p-4 sm:p-5 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-amber-500 text-white rounded-2xl flex items-center justify-center flex-shrink-0"><Icon name="bell" size={20}/></div>
+                            <div className="w-10 h-10 bg-amber-500 text-white rounded-2xl flex items-center justify-content-center flex-shrink-0"><Icon name="bell" size={20}/></div>
                             <div>
                                 <h3 className="text-amber-900 font-black text-sm">تذكير بأرشفة الشهر الماضي!</h3>
                                 <p className="text-amber-700 text-xs font-bold">هل تود تصدير سجل الشهر السابق؟</p>
@@ -701,12 +724,23 @@ const App = () => {
                                 </h2>
                                 {isAdmin && (
                                     <span className="text-[10px] font-black text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded-xl">
-                                        وضع الأدمن
+                                        أدمن (متابعة/تعديل)
+                                    </span>
+                                )}
+                                {isWife && (
+                                    <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-xl">
+                                        إدخال بيانات
                                     </span>
                                 )}
                             </div>
 
-                            <form onSubmit={addExpense} className="space-y-3">
+                            {!isWife && (
+                                <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl text-slate-700 text-sm font-bold leading-relaxed">
+                                    هذا الحساب للمتابعة فقط. <span className="text-indigo-700 font-black">إضافة المصروفات مسموحة للزوجة فقط.</span>
+                                </div>
+                            )}
+
+                            <form onSubmit={addExpense} className={`space-y-3 ${!isWife?'opacity-60 pointer-events-none':''}`}>
                                 <div>
                                     <label className="text-xs font-bold text-slate-400 block mb-1">وصف المصروف</label>
                                     <input type="text" value={title} onChange={e=>setTitle(e.target.value)} placeholder="مثلاً: خضار الأسبوع" className="w-full p-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-800 text-sm" required/>
@@ -796,13 +830,16 @@ const App = () => {
                                                 <div className="text-[9px] text-slate-400 font-bold uppercase">جنية</div>
                                             </div>
 
-                                            <button onClick={()=>openEdit(exp)} className="p-1.5 text-slate-200 hover:text-indigo-500 transition-colors" title="تعديل">
-                                                <Icon name="pencil" size={17}/>
-                                            </button>
-
-                                            <button onClick={()=>delExpense(exp.id)} className="p-1.5 text-slate-200 hover:text-red-500 transition-colors" title="حذف">
-                                                <Icon name="x-circle" size={17}/>
-                                            </button>
+                                            {(isWife || isAdmin) && (
+                                                <>
+                                                    <button onClick={()=>openEdit(exp)} className="p-1.5 text-slate-200 hover:text-indigo-500 transition-colors" title="تعديل">
+                                                        <Icon name="pencil" size={17}/>
+                                                    </button>
+                                                    <button onClick={()=>delExpense(exp.id)} className="p-1.5 text-slate-200 hover:text-red-500 transition-colors" title="حذف">
+                                                        <Icon name="x-circle" size={17}/>
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                 )):(
