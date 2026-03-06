@@ -21,6 +21,9 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 
+  <!-- ✅ Excel export library (XLSX) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
   <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -382,7 +385,7 @@
 
   /* Sign out */
   document.getElementById('btn-signout').addEventListener('click', () => {
-    if (confirm('هل تري�� تسجيل الخروج؟')) waitFb(() => window._fb.signOut(window._fb.auth));
+    if (confirm('هل تريد تسجيل الخروج؟')) waitFb(() => window._fb.signOut(window._fb.auth));
   });
 
   document.getElementById('btn-close-admin').addEventListener('click', () => {
@@ -390,7 +393,7 @@
   });
 
   // ──────────────────────────────────────────────────────────────
-  // Admin: KPI + filters + edit/delete + export (CSV)
+  // Admin: KPI + filters + edit/delete + export (Excel)
   // ──────────────────────────────────────────────────────────────
 
   const _DEF_INCOME = 16500;
@@ -468,6 +471,32 @@
 
   let adminData = { expenses: [], profile: { displayName: 'المستخدم الأساسي' } };
 
+  // ✅ Admin Excel export
+  window._expXlsxAdmin = () => {
+    const { fm, fc } = window._admFilt || { fm:'الكل', fc:'الكل' };
+    const expenses = adminData.expenses || [];
+    const list = expenses.filter(e => (fm==='الكل'||e.date?.startsWith(fm)) && (fc==='الكل'||e.category===fc));
+
+    if (!list.length) { toast('info','تنبيه','لا توجد بيانات للتصدير'); return; }
+    if (!window.XLSX) { toast('error','فشل','مكتبة Excel (XLSX) غير محملة'); return; }
+
+    const total = list.reduce((s,e)=>s+(e.amount||0),0);
+
+    const rows = [
+      ['التاريخ','الوصف','التصنيف','المبلغ (ج.م)'],
+      ...list.map(e => [e.date || '', e.title || '', e.category || '', e.amount || 0]),
+      ['', '', 'الإجمالي', total]
+    ];
+
+    const wb = window.XLSX.utils.book_new();
+    const ws = window.XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{ wch: 14 }, { wch: 36 }, { wch: 18 }, { wch: 14 }];
+    window.XLSX.utils.book_append_sheet(wb, ws, 'Expenses');
+    window.XLSX.writeFile(wb, `مصروفات_${fm}.xlsx`);
+
+    toast('success','تم','تم تصدير ملف Excel');
+  };
+
   async function loadPrimaryExpensesForAdmin() {
     const wrap = document.getElementById('admin-expenses-wrap');
     wrap.innerHTML = '<div class="no-selection">جاري التحميل...</div>';
@@ -532,7 +561,7 @@
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn-quick" onclick="window._quickMonth('${thisM}')">هذا الشهر</button>
           <button class="btn-quick" onclick="window._quickMonth('${prevM}')">الشهر السابق</button>
-          <button class="btn-export-admin" onclick="window._expCsvAdmin()">⬇ تصدير CSV</button>
+          <button class="btn-export-admin" onclick="window._expXlsxAdmin()">⬇ تصدير Excel</button>
         </div>
       </div>
 
@@ -591,25 +620,6 @@
     openEditModal({ mode:'admin', id, uid: PRIMARY_UID(), data: exp });
   };
 
-  window._expCsvAdmin = () => {
-    const { fm, fc } = window._admFilt || { fm:'الكل', fc:'الكل' };
-    const expenses = adminData.expenses || [];
-    const list = expenses.filter(e => (fm==='الكل'||e.date?.startsWith(fm)) && (fc==='الكل'||e.category===fc));
-    if (!list.length) { toast('info','تنبيه','لا توجد بيانات للتصدير'); return; }
-    const total = list.reduce((s,e)=>s+(e.amount||0),0);
-
-    const csv = '\uFEFF'+[['التاريخ','الوصف','التصنيف','المبلغ (ج.م)'],
-      ...list.map(e=>[e.date,e.title,e.category,e.amount]),
-      ['','','الإجمالي',total]
-    ].map(r=>r.join(',')).join('\n');
-
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
-    a.download = `مصروفات_${fm}.csv`;
-    a.click();
-    toast('success','تم','تم تجهيز ملف CSV');
-  };
-
   // ──────────────────────────────────────────────────────────────
   // Auth gating: admin -> admin screen, primary -> app
   // ──────────────────────────────────────────────────────────────
@@ -662,7 +672,6 @@
      REACT APP (Primary)
      ====================== -->
 <script type="text/babel">
-/* (React code unchanged; it no longer includes styles) */
 const { useState, useEffect, useMemo } = React;
 const { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } = window.Recharts;
 
@@ -713,6 +722,52 @@ const fmtMonth = m => {
 
 const HIGH_THRESHOLD = 500;
 
+const MonthExportModal = ({ show, monthKey, onExportNow }) => {
+  if (!show) return null;
+
+  const nice = (() => {
+    const [y,m]=monthKey.split('-');
+    return new Date(y, parseInt(m)-1).toLocaleDateString('ar-EG',{month:'long',year:'numeric'});
+  })();
+
+  return (
+    <div className="fixed inset-0 z-[99999] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white w-full max-w-lg rounded-3xl p-6 border-4 border-amber-300 shadow-2xl">
+        <div className="flex items-start gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-black text-xl flex-shrink-0">!</div>
+          <div className="min-w-0">
+            <h3 className="text-amber-900 font-black text-base sm:text-lg m-0">تنبيه مهم جدًا: تصدير بيانات الشهر السابق</h3>
+            <p className="text-slate-600 font-bold text-sm mt-2 leading-7">
+              أنت في <b>أول يوم من الشهر</b>.
+              يجب تصدير بيانات <b>{nice}</b> الآن للحفظ/الأرشفة.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5 flex flex-col sm:flex-row gap-3">
+          <button
+            onClick={onExportNow}
+            className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white font-black px-5 py-3 rounded-2xl">
+            ⬇ تصدير الآن (Excel)
+          </button>
+
+          <a
+            href="https://support.google.com/docs/answer/9331169?hl=ar"
+            target="_blank"
+            rel="noreferrer"
+            className="w-full sm:w-auto text-center bg-white border-2 border-amber-200 text-amber-700 font-black px-5 py-3 rounded-2xl hover:bg-amber-50">
+            طريقة فتح الملف
+          </a>
+        </div>
+
+        <div className="mt-4 text-[12px] font-black text-slate-500">
+          ملاحظة: لن تختفي هذه الرسالة إلا بعد تصدير الشهر السابق بنجاح.
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const App = () => {
   const [expenses,setExpenses]   = useState([]);
   const [user,setUser]           = useState(null);
@@ -726,7 +781,10 @@ const App = () => {
   const [fCat,setFCat]           = useState('الكل');
   const [fMonth,setFMonth]       = useState(nowYM());
   const [q,setQ]                 = useState('');
-  const [reminder,setReminder]   = useState(false);
+
+  // ✅ Mandatory export modal state
+  const [mustExport, setMustExport] = useState(false);
+  const [mustMonth, setMustMonth] = useState('');
 
   useEffect(() => {
     const init = () => {
@@ -763,15 +821,6 @@ const App = () => {
 
   useEffect(() => { if (window.lucide) window.lucide.createIcons(); },[expenses]);
 
-  useEffect(() => {
-    if (new Date().getDate()===1) {
-      const d=new Date(); d.setMonth(d.getMonth()-1);
-      const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-      if (!localStorage.getItem(`exported_${k}`) && expenses.some(e=>e.date?.startsWith(k)))
-        setReminder(true);
-    }
-  },[expenses]);
-
   const months = useMemo(()=>[...new Set([...expenses.map(e=>e.date?.slice(0,7)).filter(Boolean), nowYM()])].sort().reverse(),[expenses]);
 
   const filtered = useMemo(() => {
@@ -784,6 +833,7 @@ const App = () => {
     });
   }, [expenses, fMonth, fCat, q]);
 
+  // remaining based on selected month
   const spentForSelectedMonth = useMemo(() => {
     if (fMonth === 'الكل') return filtered.reduce((s,e)=>s+(e.amount||0),0);
     const monthOnly = expenses.filter(e => e.date?.startsWith(fMonth));
@@ -829,19 +879,59 @@ const App = () => {
     }
   };
 
-  const exportCsv = (tm='all') => {
+  // ✅ Excel export for user
+  const exportExcel = (tm='all') => {
     const data = tm==='all'?expenses:expenses.filter(e=>e.date?.startsWith(tm));
     if (!data.length){ window.toast?.('info','تنبيه','لا توجد بيانات'); return; }
+    if (!window.XLSX){ window.toast?.('error','فشل','مكتبة Excel (XLSX) غير محملة'); return; }
+
     const t=data.reduce((s,e)=>s+(e.amount||0),0);
-    const csv='\uFEFF'+[['التاريخ','الوصف','القسم','المبلغ (ج.م)'],
-      ...data.map(e=>[e.date,e.title,e.category,e.amount]),
-      ['','','الإجمالي',t]
-    ].map(r=>r.join(',')).join('\n');
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
-    a.download=`مصروفات_${tm==='all'?'كاملة':tm}.csv`; a.click();
-    if(tm!=='all'){localStorage.setItem(`exported_${tm}`,'true');setReminder(false);}
-    window.toast?.('success','تم','تم تجهيز ملف CSV');
+
+    const rows = [
+      ['التاريخ','الوصف','القسم','المبلغ (ج.م)'],
+      ...data.map(e=>[e.date||'', e.title||'', e.category||'', e.amount||0]),
+      ['','','الإجمالي', t]
+    ];
+
+    const wb = window.XLSX.utils.book_new();
+    const ws = window.XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{ wch: 14 }, { wch: 36 }, { wch: 18 }, { wch: 14 }];
+    window.XLSX.utils.book_append_sheet(wb, ws, 'Expenses');
+    window.XLSX.writeFile(wb, `مصروفات_${tm==='all'?'كاملة':tm}.xlsx`);
+
+    window.toast?.('success','تم','تم تصدير ملف Excel');
+
+    if (tm !== 'all') {
+      localStorage.setItem(`exported_${tm}`, 'true');
+      // إخفاء الإلزام لو كان خاص بنفس الشهر
+      if (mustMonth === tm) setMustExport(false);
+    }
+  };
+
+  // ✅ Mandatory reminder only if: first day + previous month has data + not exported
+  useEffect(() => {
+    if (!user || user.uid !== window._PRIMARY_UID) return;
+
+    const today = new Date();
+    if (today.getDate() !== 1) return;
+
+    const prev = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const key = `${prev.getFullYear()}-${String(prev.getMonth()+1).padStart(2,'0')}`;
+
+    const already = localStorage.getItem(`exported_${key}`) === 'true';
+    const hasData = expenses.some(e => e.date?.startsWith(key));
+
+    if (hasData && !already) {
+      setMustMonth(key);
+      setMustExport(true);
+    } else {
+      setMustExport(false);
+    }
+  }, [expenses, user]);
+
+  const exportMustMonthNow = () => {
+    if (!mustMonth) return;
+    exportExcel(mustMonth);
   };
 
   const quickThisMonth = () => setFMonth(nowYM());
@@ -858,12 +948,15 @@ const App = () => {
 
   return (
     <div className="min-h-screen p-3 sm:p-4 md:p-6 lg:p-8 xl:p-10">
+      {/* ✅ Mandatory modal (blocks the app) */}
+      <MonthExportModal show={mustExport} monthKey={mustMonth} onExportNow={exportMustMonthNow} />
+
       <div className="max-w-screen-xl mx-auto space-y-4 sm:space-y-5 lg:space-y-6">
 
         <div className="quick-row">
           <button className="qbtn" onClick={quickThisMonth}>هذا الشهر</button>
           <button className="qbtn" onClick={quickPrevMonth}>الشهر السابق</button>
-          <button className="qbtn" onClick={()=>exportCsv('all')}>تصدير CSV</button>
+          <button className="qbtn" onClick={()=>exportExcel('all')}>تصدير Excel</button>
         </div>
 
         <div className="kpi-grid-primary">
@@ -913,23 +1006,8 @@ const App = () => {
           </div>
         </div>
 
-        {reminder && (
-          <div className="bg-amber-50 border-2 border-amber-200 p-4 sm:p-5 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-amber-500 text-white rounded-2xl flex items-center justify-center flex-shrink-0"><Icon name="bell" size={20}/></div>
-              <div>
-                <h3 className="text-amber-900 font-black text-sm">تذكير بأرشفة الشهر الماضي!</h3>
-                <p className="text-amber-700 text-xs font-bold">هل تود تصدير سجل الشهر السابق؟</p>
-              </div>
-            </div>
-            <div className="flex gap-2 flex-shrink-0">
-              <button onClick={()=>{const d=new Date();d.setMonth(d.getMonth()-1);exportCsv(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);}} className="bg-amber-600 text-white px-4 py-2 rounded-xl font-black text-xs hover:bg-amber-700 transition-all">تصدير الآن</button>
-              <button onClick={()=>setReminder(false)} className="bg-white text-amber-600 border border-amber-200 px-4 py-2 rounded-xl font-bold text-xs hover:bg-amber-100">لاحقاً</button>
-            </div>
-          </div>
-        )}
-
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 lg:gap-6">
+          {/* Add form */}
           <div className="lg:col-span-4">
             <div className="bg-white p-4 sm:p-5 lg:p-6 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-100 lg:sticky lg:top-16">
               <h2 className="text-sm sm:text-base lg:text-lg font-bold mb-4 flex items-center gap-2 text-slate-800">
@@ -971,6 +1049,7 @@ const App = () => {
             </div>
           </div>
 
+          {/* Filters + chart + list */}
           <div className="lg:col-span-8 space-y-4 sm:space-y-5">
             <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
