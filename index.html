@@ -150,7 +150,7 @@
     #user-bar.show { display:flex; }
     .ubar-left { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     #user-avatar { width:30px; height:30px; border-radius:50%; border:2px solid #6366f1; object-fit:cover; flex-shrink:0; }
-    #user-name { font-size:13px; font-weight:700; color:#4338ca; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    #user-name { font-size:13px; font-weight:700; color:#4338ca; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .sync-badge { font-size:11px; color:#10b981; font-weight:700; display:flex; align-items:center; gap:4px; }
     .sync-dot { width:7px; height:7px; border-radius:50%; background:#10b981; animation:pulse 1.5s infinite; }
     @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
@@ -398,6 +398,12 @@
   function isPrimary(user) { return !!user && user.uid === PRIMARY_UID(); }
   function isAdmin(user) { return !!user && user.uid === ADMIN_UID(); }
 
+  function _safeName(str) {
+    const s = (str || '').trim();
+    // لو ما فيش displayName، لا نظهر الإيميل (حسب طلبك)
+    return s || 'مستخدم';
+  }
+
   function showLoginOnly() {
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('user-bar').classList.remove('show');
@@ -469,6 +475,7 @@
 
   // ──────────────────────────────────────────────────────────────
   // Admin: view + edit + delete + KPI cards (spent + income + remaining)
+  // + إخفاء الإيميل في كل مكان
   // ──────────────────────────────────────────────────────────────
 
   function escapeHtml(str) {
@@ -537,8 +544,8 @@
     `;
   }
 
-  // Admin local cache
-  let adminData = { expenses: [], profile: { displayName: 'المستخدم الأساسي', email: '' } };
+  // Admin local cache (بدون email)
+  let adminData = { expenses: [], profile: { displayName: 'المستخدم الأساسي' } };
 
   async function loadPrimaryExpensesForAdmin() {
     const wrap = document.getElementById('admin-expenses-wrap');
@@ -553,11 +560,14 @@
     try {
       const { db, collection, getDocs, query, orderBy, doc, getDoc } = window._fb;
 
-      // profile (optional)
-      let profile = { displayName: 'المستخدم الأساسي', email: '' };
+      // profile (optional) - لا نحتاج email
+      let profile = { displayName: 'المستخدم الأساسي' };
       try {
         const pSnap = await getDoc(doc(db, 'users', PRIMARY_UID()));
-        if (pSnap.exists()) profile = { ...profile, ...(pSnap.data() || {}) };
+        if (pSnap.exists()) {
+          const p = pSnap.data() || {};
+          profile = { displayName: p.displayName || 'المستخدم الأساسي' };
+        }
       } catch (_) {}
 
       const eSnap = await getDocs(query(collection(db,'users',PRIMARY_UID(),'expenses'), orderBy('createdAt','desc')));
@@ -567,7 +577,7 @@
       await renderAdminExpenses('الكل','الكل');
     } catch (e) {
       console.error(e);
-      wrap.innerHTML = `<div class="no-selection" style="color:#ef4444">�� خطأ: ${e.message}</div>`;
+      wrap.innerHTML = `<div class="no-selection" style="color:#ef4444">❌ خطأ: ${e.message}</div>`;
     }
   }
 
@@ -594,7 +604,6 @@
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
         <div>
           <h3 style="font-size:15px;font-weight:900;color:#1e1b4b;margin:0">مصروفات: ${escapeHtml(adminData.profile?.displayName || 'المستخدم الأساسي')}</h3>
-          <div style="font-size:12px;color:#64748b;font-weight:800;margin-top:4px">${escapeHtml(adminData.profile?.email || '')}</div>
         </div>
         <button class="btn-export-admin" onclick="window._expCsvAdmin()">⬇ تصدير CSV</button>
       </div>
@@ -715,6 +724,7 @@
 
   // ──────────────────────────────────────────────────────────────
   // Auth gating: admin goes directly to admin screen, primary to app
+  // + لا نظهر الإيميل في الشريط العلوي مطلقاً
   // ──────────────────────────────────────────────────────────────
   waitFb(() => {
     window._fb.onAuthStateChanged(window._fb.auth, async (user) => {
@@ -729,16 +739,16 @@
         return;
       }
 
-      // user bar always visible after login
+      // user bar always visible after login (NAME ONLY)
       document.getElementById('user-bar').classList.add('show');
-      document.getElementById('user-name').textContent = user.displayName || '';
+      document.getElementById('user-name').textContent = _safeName(user.displayName);
       document.getElementById('user-avatar').src = user.photoURL || '';
 
-      // save profile
+      // save profile (we can still store email in Firestore if you want, but not display it)
       const { db, doc, setDoc } = window._fb;
       setDoc(doc(db, 'users', user.uid), {
-        displayName: user.displayName || user.email || '',
-        email: user.email || '',
+        displayName: user.displayName || '',
+        email: user.email || '',       // محفوظ لكن غير معروض
         photoURL: user.photoURL || '',
         lastLogin: Date.now()
       }, { merge: true }).catch(() => {});
@@ -746,7 +756,7 @@
       // ADMIN: go directly to admin expenses view
       if (isAdmin(user)) {
         document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app-screen').classList.remove('show'); // never show React app to admin
+        document.getElementById('app-screen').classList.remove('show');
         document.getElementById('admin-panel').classList.add('show');
         await loadPrimaryExpensesForAdmin();
         return;
@@ -778,7 +788,7 @@ const CATS = [
   'خضار وفاكهه','فراخ','لحوم','علافة و توابل','مسحوق غسيل',
   'مناديل','منظفات ارضيات','معجون','زيت وسمن','مكرونة و رز',
   'صوصات وصلصة','شامبو وكريمات','عيش و فينو','مخبوزات',
-  'جبن و البان','سوبر ماركت','صيدلية','مواصلات','أخرى'
+  'جبن و البان','سوبر ماركت','أدوية','أخرى'
 ];
 const COLORS = ['#6366F1','#EF4444','#10B981','#F59E0B','#8B5CF6','#EC4899','#06B6D4','#F97316','#14B8A6','#F43F5E'];
 
