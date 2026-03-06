@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>مصروفاتي - إدارة مصروفات المنزل</title>
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#4f46e5">
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#4f46e5" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet" />
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -174,11 +177,101 @@
       background-repeat:no-repeat; background-position:left 0.75rem center; background-size:1.1em;
     }
 
-    /* ─── ADMIN PANEL ─── */
-    #admin-panel {
-      display:none; position:fixed; inset:0; z-index:500;
-      background:#f8fafc; overflow-y:auto;
+    /* ─── Toasts ─── */
+    #toast-root{
+      position:fixed;
+      top:14px;
+      right:14px;
+      z-index:9999;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      pointer-events:none;
     }
+    .toast{
+      pointer-events:auto;
+      min-width: min(360px, calc(100vw - 28px));
+      background:white;
+      border:1px solid #e2e8f0;
+      border-radius:16px;
+      padding:12px 14px;
+      box-shadow:0 20px 60px rgba(15,23,42,0.14);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      animation: toastIn .18s ease-out;
+    }
+    @keyframes toastIn { from{opacity:0;transform:translateY(-8px) scale(.98)} to{opacity:1;transform:none} }
+    .toast .t-left{display:flex;gap:10px;align-items:flex-start}
+    .toast .t-ic{
+      width:34px;height:34px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      color:white;font-weight:900;flex-shrink:0;
+    }
+    .toast .t-title{font-weight:900;color:#0f172a;font-size:13px;margin:0 0 2px}
+    .toast .t-msg{font-weight:700;color:#475569;font-size:12px;margin:0;line-height:1.6}
+    .toast .t-close{
+      background:none;border:none;color:#94a3b8;
+      cursor:pointer;font-weight:900;font-size:16px;line-height:1;
+      padding:6px 8px;border-radius:10px;
+    }
+    .toast .t-close:hover{background:#f1f5f9;color:#334155}
+    .toast.success .t-ic{background:linear-gradient(135deg,#10b981,#059669)}
+    .toast.error .t-ic{background:linear-gradient(135deg,#ef4444,#b91c1c)}
+    .toast.info .t-ic{background:linear-gradient(135deg,#6366f1,#4338ca)}
+
+    /* ─── Shared Modal (Edit/Delete) ─── */
+    .xmodal {
+      display:none; position:fixed; inset:0; z-index:4000;
+      background:rgba(15,23,42,0.7); backdrop-filter:blur(6px);
+      align-items:center; justify-content:center; padding:20px;
+    }
+    .xmodal.show{display:flex;}
+    .xmodal-card{
+      background:white;border-radius:24px;width:100%;max-width:520px;
+      padding:22px 22px 18px;
+      box-shadow:0 30px 90px rgba(0,0,0,0.33);
+      border-top:4px solid #6366f1;
+      animation:modalIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .xmodal-head{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;
+    }
+    .xmodal-title{font-size:16px;font-weight:900;color:#1e1b4b;margin:0}
+    .xmodal-x{
+      background:#f1f5f9;border:1px solid #e2e8f0;color:#334155;
+      width:38px;height:38px;border-radius:14px;cursor:pointer;font-weight:900;
+    }
+    .xmodal-x:hover{background:#e2e8f0}
+    .xmodal-grid{
+      display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px;
+    }
+    @media(min-width: 640px){
+      .xmodal-grid{grid-template-columns:1fr 1fr;}
+      .xmodal-grid .span2{grid-column:1 / -1;}
+    }
+    .xmodal-label{display:block;font-size:11px;font-weight:900;color:#64748b;margin-bottom:6px}
+    .xmodal-input{
+      width:100%;padding:12px 12px;border-radius:14px;border:1.5px solid #e0e7ff;
+      background:#f8fafc;outline:none;font-weight:800;color:#0f172a;font-family:'Cairo',sans-serif;
+    }
+    .xmodal-input:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,0.14)}
+    .xmodal-actions{display:flex;gap:10px;justify-content:flex-start;flex-wrap:wrap;margin-top:16px}
+    .xbtn{
+      border-radius:14px;padding:11px 14px;border:1px solid;
+      font-family:'Cairo',sans-serif;font-size:13px;font-weight:900;cursor:pointer;
+      transition:all .15s;
+    }
+    .xbtn-primary{background:#4338ca;border-color:#4338ca;color:white;}
+    .xbtn-primary:hover{background:#3730a3;border-color:#3730a3}
+    .xbtn-ghost{background:white;border-color:#e2e8f0;color:#334155}
+    .xbtn-ghost:hover{background:#f1f5f9}
+    .xbtn-danger{background:#fee2e2;border-color:#fecaca;color:#b91c1c}
+    .xbtn-danger:hover{background:#fecaca}
+
+    /* ─── Admin KPI cards + table styles (keep from earlier) ─── */
+    #admin-panel { display:none; position:fixed; inset:0; z-index:500; background:#f8fafc; overflow-y:auto; }
     #admin-panel.show { display:block; }
     .admin-topbar {
       background:#1e1b4b; color:white;
@@ -195,68 +288,20 @@
     .btn-close-admin:hover { background:rgba(255,255,255,0.22); }
     .admin-body { max-width:1300px; margin:0 auto; padding:clamp(16px,3vw,32px) clamp(12px,3vw,28px); }
 
-    /* Admin KPI cards */
-    .admin-kpis {
-      display:grid;
-      grid-template-columns: repeat(1, minmax(0, 1fr));
-      gap:12px;
-      margin: 10px 0 18px;
-    }
-    @media (min-width: 640px) {
-      .admin-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    }
-    .kpi-card {
-      border-radius:18px;
-      padding:14px 16px;
-      border:1px solid #e0e7ff;
-      background:white;
-      box-shadow:0 10px 30px rgba(15,23,42,0.06);
-      overflow:hidden;
-      position:relative;
-    }
+    .admin-kpis { display:grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap:12px; margin: 10px 0 10px; }
+    @media (min-width: 640px) { .admin-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    .kpi-card { border-radius:18px; padding:14px 16px; border:1px solid #e0e7ff; background:white; box-shadow:0 10px 30px rgba(15,23,42,0.06); overflow:hidden; position:relative; }
     .kpi-card::before{
-      content:'';
-      position:absolute; inset:0;
+      content:''; position:absolute; inset:0;
       background: radial-gradient(800px 140px at 20% 0%, rgba(99,102,241,.10), transparent 55%),
                   radial-gradient(800px 140px at 80% 0%, rgba(236,72,153,.10), transparent 55%);
       pointer-events:none;
     }
-    .kpi-top {
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      position:relative;
-    }
-    .kpi-label {
-      font-size:11px;
-      font-weight:900;
-      color:#64748b;
-      letter-spacing:.06em;
-      text-transform:uppercase;
-    }
-    .kpi-value {
-      margin-top:6px;
-      font-size:22px;
-      font-weight:900;
-      color:#0f172a;
-      position:relative;
-    }
-    .kpi-sub {
-      margin-top:6px;
-      font-size:12px;
-      font-weight:800;
-      color:#64748b;
-      position:relative;
-    }
-    .kpi-icon {
-      width:40px; height:40px;
-      border-radius:14px;
-      display:flex; align-items:center; justify-content:center;
-      font-size:18px;
-      border:1px solid rgba(255,255,255,.35);
-      position:relative;
-    }
+    .kpi-top { display:flex; align-items:center; justify-content:space-between; gap:10px; position:relative; }
+    .kpi-label { font-size:11px; font-weight:900; color:#64748b; letter-spacing:.06em; text-transform:uppercase; }
+    .kpi-value { margin-top:6px; font-size:22px; font-weight:900; color:#0f172a; position:relative; }
+    .kpi-sub { margin-top:6px; font-size:12px; font-weight:800; color:#64748b; position:relative; }
+    .kpi-icon { width:40px; height:40px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:18px; border:1px solid rgba(255,255,255,.35); position:relative; }
     .kpi-income { background: linear-gradient(135deg,#ecfdf5,#d1fae5); border-color:#a7f3d0; }
     .kpi-income .kpi-icon { background: linear-gradient(135deg,#10b981,#059669); color:white; }
     .kpi-spent  { background: linear-gradient(135deg,#eef2ff,#e0e7ff); border-color:#c7d2fe; }
@@ -266,16 +311,12 @@
     .kpi-negative .kpi-value { color:#b91c1c; }
     .kpi-negative { background: linear-gradient(135deg,#fef2f2,#ffe4e6); border-color:#fecaca; }
     .kpi-negative .kpi-icon { background: linear-gradient(135deg,#ef4444,#b91c1c); color:white; }
-    .kpi-tag {
-      display:inline-flex; align-items:center; gap:6px;
-      font-size:11px; font-weight:900;
-      padding:5px 10px;
-      border-radius:999px;
-      border:1px solid rgba(99,102,241,.25);
-      background: rgba(99,102,241,.08);
-      color:#4338ca;
-      position:relative;
-    }
+    .kpi-tag { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:900; padding:5px 10px; border-radius:999px; border:1px solid rgba(99,102,241,.25); background: rgba(99,102,241,.08); color:#4338ca; position:relative; }
+    .kpi-progress{ margin-top:10px; height:10px; background: rgba(15,23,42,0.06); border-radius:999px; overflow:hidden; position:relative; }
+    .kpi-progress > div{ height:100%; width:0%; border-radius:999px; transition:width .25s ease; }
+    .kpi-p-good{background:linear-gradient(90deg,#10b981,#059669)}
+    .kpi-p-warn{background:linear-gradient(90deg,#f59e0b,#d97706)}
+    .kpi-p-bad {background:linear-gradient(90deg,#ef4444,#b91c1c)}
 
     .admin-expenses-wrap { background:white; border-radius:20px; padding:clamp(16px,3vw,24px); border:1px solid #e0e7ff; }
     .admin-filters { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
@@ -289,11 +330,16 @@
     .btn-export-admin {
       background:#059669; color:white; border:none; border-radius:10px;
       padding:9px 16px; font-family:'Cairo',sans-serif; font-size:13px;
-      font-weight:700; cursor:pointer; margin-right:auto;
+      font-weight:700; cursor:pointer;
     }
     .btn-export-admin:hover { background:#047857; }
+    .btn-quick{
+      background:white; border:1px solid #e0e7ff; color:#4338ca; border-radius:10px;
+      padding:9px 12px; font-family:'Cairo',sans-serif; font-size:13px; font-weight:900; cursor:pointer;
+    }
+    .btn-quick:hover{background:#eef2ff}
     .admin-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
-    .admin-table { width:100%; border-collapse:collapse; font-size:clamp(12px,1.5vw,14px); min-width:520px; }
+    .admin-table { width:100%; border-collapse:collapse; font-size:clamp(12px,1.5vw,14px); min-width:560px; }
     .admin-table th { background:#f5f3ff; color:#4338ca; font-weight:800; padding:10px 14px; text-align:right; white-space:nowrap; }
     .admin-table td { padding:10px 14px; border-bottom:1px solid #f1f5f9; color:#374151; vertical-align:middle; }
     .admin-table tr:last-child td { border-bottom:none; }
@@ -311,17 +357,136 @@
     .btn-mini-danger:hover { background:#fef2f2; }
     .btn-mini-primary { border-color:#c7d2fe; color:#4338ca; }
     .btn-mini-primary:hover { background:#eef2ff; }
+
+    /* ─── Primary KPI + badges ─── */
+    .kpi-grid-primary{
+      display:grid;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      gap:12px;
+    }
+    @media(min-width: 640px){
+      .kpi-grid-primary{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    .p-kpi{
+      border-radius:22px;
+      padding:14px 16px;
+      border:1px solid #e2e8f0;
+      background:white;
+      box-shadow:0 14px 44px rgba(15,23,42,0.06);
+      position:relative;
+      overflow:hidden;
+    }
+    .p-kpi::before{
+      content:'';
+      position:absolute; inset:0;
+      background: radial-gradient(700px 120px at 20% 0%, rgba(99,102,241,.12), transparent 55%),
+                  radial-gradient(700px 120px at 80% 0%, rgba(236,72,153,.10), transparent 55%);
+      pointer-events:none;
+    }
+    .p-kpi .top{display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative}
+    .p-kpi .label{font-size:11px;font-weight:900;color:#64748b;letter-spacing:.08em;text-transform:uppercase}
+    .p-kpi .val{margin-top:6px;font-size:20px;font-weight:900;color:#0f172a;position:relative}
+    .p-kpi .sub{margin-top:6px;font-size:12px;font-weight:800;color:#64748b;position:relative}
+    .p-ic{width:40px;height:40px;border-radius:16px;display:flex;align-items:center;justify-content:center;color:white;font-weight:900;position:relative}
+    .p-income .p-ic{background:linear-gradient(135deg,#10b981,#059669)}
+    .p-spent  .p-ic{background:linear-gradient(135deg,#6366f1,#4338ca)}
+    .p-rem .p-ic{background:linear-gradient(135deg,#f59e0b,#d97706)}
+    .p-rem.neg .p-ic{background:linear-gradient(135deg,#ef4444,#b91c1c)}
+    .p-rem.neg .val{color:#b91c1c}
+
+    .p-progress{margin-top:10px;height:10px;background:rgba(15,23,42,.06);border-radius:999px;overflow:hidden;position:relative}
+    .p-progress>div{height:100%;width:0%;border-radius:999px;transition:width .25s ease}
+    .p-good{background:linear-gradient(90deg,#10b981,#059669)}
+    .p-warn{background:linear-gradient(90deg,#f59e0b,#d97706)}
+    .p-bad{background:linear-gradient(90deg,#ef4444,#b91c1c)}
+
+    .quick-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .qbtn{
+      border-radius:14px;
+      padding:10px 12px;
+      border:1px solid #e2e8f0;
+      background:white;
+      font-family:'Cairo',sans-serif;
+      font-size:12px;
+      font-weight:900;
+      color:#334155;
+      cursor:pointer;
+    }
+    .qbtn:hover{background:#f1f5f9}
+
+    .cat-badge{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:5px 10px;
+      border-radius:999px;
+      font-size:10px;
+      font-weight:900;
+      border:1px solid rgba(99,102,241,.18);
+      background: rgba(99,102,241,.06);
+      color:#4338ca;
+    }
+    .cat-dot{ width:10px; height:10px; border-radius:50%; background:#6366f1; }
+    .big-badge{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:10px;
+      font-weight:900;
+      background:#fee2e2;
+      border:1px solid #fecaca;
+      color:#b91c1c;
+    }
   </style>
 </head>
 
 <body>
+
+<!-- Toasts -->
+<div id="toast-root" aria-live="polite" aria-atomic="true"></div>
+
+<!-- Shared Edit Modal -->
+<div class="xmodal" id="edit-modal">
+  <div class="xmodal-card">
+    <div class="xmodal-head">
+      <h3 class="xmodal-title" id="edit-modal-title">تعديل بند</h3>
+      <button class="xmodal-x" id="edit-modal-x">✕</button>
+    </div>
+
+    <div class="xmodal-grid">
+      <div class="span2">
+        <label class="xmodal-label">الوصف</label>
+        <input class="xmodal-input" id="em-title" type="text" />
+      </div>
+
+      <div>
+        <label class="xmodal-label">المبلغ (ج.م)</label>
+        <input class="xmodal-input" id="em-amount" type="number" inputmode="decimal" />
+      </div>
+
+      <div>
+        <label class="xmodal-label">التاريخ</label>
+        <input class="xmodal-input" id="em-date" type="date" />
+      </div>
+
+      <div class="span2">
+        <label class="xmodal-label">التصنيف</label>
+        <select class="xmodal-input" id="em-category"></select>
+      </div>
+    </div>
+
+    <div class="xmodal-actions">
+      <button class="xbtn xbtn-primary" id="em-save">حفظ التعديل</button>
+      <button class="xbtn xbtn-danger" id="em-delete">حذف</button>
+      <button class="xbtn xbtn-ghost" id="em-cancel">إلغاء</button>
+    </div>
+  </div>
+</div>
 
 <!-- ════════ LOGIN SCREEN ════════ -->
 <div id="login-screen">
   <div class="login-card">
     <div class="login-logo">🏠</div>
     <h1>مصروفاتي</h1>
-    <p class="subtitle">تطبيق إدارة مصروفات المنزل<br></p>
+    <p class="subtitle">تطبيق إدارة مصروفات المنزل<br /></p>
 
     <button class="btn-login btn-login-google" id="btn-google-login">
       <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
@@ -341,9 +506,9 @@
   <div class="modal-card">
     <div style="font-size:40px;margin-bottom:14px">🛡</div>
     <h2>دخول الأدمن</h2>
-    <p>أدخل بيانات حساب الأدمن<br>المسجّل على Firebase Authentication</p>
-    <input class="modal-input" type="email" id="admin-email" placeholder="البريد الإلكتروني" dir="ltr" autocomplete="email">
-    <input class="modal-input" type="password" id="admin-password" placeholder="كلمة المرور" dir="ltr" autocomplete="current-password">
+    <p>أدخل بيانات حساب الأدمن<br />المسجّل على Firebase Authentication</p>
+    <input class="modal-input" type="email" id="admin-email" placeholder="البريد الإلكتروني" dir="ltr" autocomplete="email" />
+    <input class="modal-input" type="password" id="admin-password" placeholder="كلمة المرور" dir="ltr" autocomplete="current-password" />
     <div class="modal-error" id="admin-error">❌ بيانات خاطئة، تحقق وحاول مرة أخرى</div>
     <button class="btn-modal-submit" id="btn-admin-submit">دخول</button>
     <button class="btn-modal-cancel" id="btn-admin-cancel">إلغاء</button>
@@ -353,7 +518,7 @@
 <!-- ════════ USER BAR ════════ -->
 <div id="user-bar">
   <div class="ubar-left">
-    <img id="user-avatar" src="" alt="">
+    <img id="user-avatar" src="" alt="" />
     <span id="user-name"></span>
     <div class="sync-badge"><div class="sync-dot"></div> متزامن</div>
   </div>
@@ -385,7 +550,9 @@
   </div>
 </div>
 
-<!-- ════════ AUTH + ADMIN VANILLA JS ════════ -->
+<!-- ==============================
+     AUTH + ADMIN + MODAL + TOASTS
+     ============================== -->
 <script>
 (function () {
   function waitFb(cb) {
@@ -400,9 +567,127 @@
 
   function _safeName(str) {
     const s = (str || '').trim();
-    // لو ما فيش displayName، لا نظهر الإيميل (حسب طلبك)
     return s || 'مستخدم';
   }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+  }
+
+  // Toast helper (global for React)
+  function toast(type, title, msg, ms = 2800) {
+    const root = document.getElementById('toast-root');
+    const el = document.createElement('div');
+    el.className = `toast ${type || 'info'}`;
+    const icon = type === 'success' ? '✓' : type === 'error' ? '!' : 'i';
+    el.innerHTML = `
+      <div class="t-left">
+        <div class="t-ic">${icon}</div>
+        <div>
+          <p class="t-title">${escapeHtml(title || '')}</p>
+          <p class="t-msg">${escapeHtml(msg || '')}</p>
+        </div>
+      </div>
+      <button class="t-close" aria-label="Close">✕</button>
+    `;
+    const close = () => { el.style.opacity = '0'; el.style.transform = 'translateY(-6px)'; setTimeout(()=>el.remove(), 180); };
+    el.querySelector('.t-close').addEventListener('click', close);
+    root.appendChild(el);
+    setTimeout(close, ms);
+  }
+  window.toast = toast;
+
+  // Populate categories in edit modal select
+  function ensureModalCats() {
+    const sel = document.getElementById('em-category');
+    if (!sel) return;
+    if (sel.dataset.ready === '1') return;
+    sel.innerHTML = CATS.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    sel.dataset.ready = '1';
+  }
+
+  // Shared edit modal (admin & primary)
+  let _editCtx = { mode: null, id: null, uid: null, data: null }; // mode: 'primary'|'admin'
+  function openEditModal({ mode, id, uid, data }) {
+    ensureModalCats();
+    _editCtx = { mode, id, uid, data };
+    document.getElementById('em-title').value = data?.title || '';
+    document.getElementById('em-amount').value = data?.amount ?? '';
+    document.getElementById('em-date').value = data?.date || '';
+    document.getElementById('em-category').value = data?.category || CATS[0];
+    document.getElementById('edit-modal').classList.add('show');
+  }
+  function closeEditModal() {
+    document.getElementById('edit-modal').classList.remove('show');
+  }
+  document.getElementById('edit-modal-x').addEventListener('click', closeEditModal);
+  document.getElementById('em-cancel').addEventListener('click', closeEditModal);
+  document.getElementById('edit-modal').addEventListener('click', (e)=>{ if(e.target.id==='edit-modal') closeEditModal(); });
+
+  // Save/Delete
+  document.getElementById('em-save').addEventListener('click', async () => {
+    try {
+      const title = document.getElementById('em-title').value.trim();
+      const amount = parseFloat(document.getElementById('em-amount').value);
+      const date = document.getElementById('em-date').value.trim();
+      const category = document.getElementById('em-category').value.trim();
+
+      if (!title) return toast('error','خطأ','أدخل الوصف');
+      if (!(amount > 0)) return toast('error','خطأ','أدخل مبلغ صحيح');
+      if (!date) return toast('error','خطأ','اختر تاريخ');
+
+      const currentUser = window._fb.auth.currentUser;
+      if (!currentUser) return toast('error','خطأ','غير مسجل');
+
+      const { db, doc, updateDoc } = window._fb;
+      await updateDoc(doc(db,'users', _editCtx.uid, 'expenses', _editCtx.id), {
+        title, amount, category, date,
+        updatedAt: Date.now(),
+        updatedBy: currentUser.uid
+      });
+
+      toast('success','تم','تم حفظ التعديل');
+      closeEditModal();
+
+      if (_editCtx.mode === 'admin') {
+        await loadPrimaryExpensesForAdmin();
+        const { fm, fc } = window._admFilt || { fm:'الكل', fc:'الكل' };
+        await renderAdminExpenses(fm, fc);
+      }
+    } catch (e) {
+      toast('error','فشل', e.message || 'حدث خطأ');
+    }
+  });
+
+  document.getElementById('em-delete').addEventListener('click', async () => {
+    try {
+      if (!confirm('حذف هذا البند؟')) return;
+
+      const currentUser = window._fb.auth.currentUser;
+      if (!currentUser) return toast('error','خطأ','غير مسجل');
+
+      const { db, doc, deleteDoc } = window._fb;
+      await deleteDoc(doc(db,'users', _editCtx.uid, 'expenses', _editCtx.id));
+
+      toast('success','تم','تم حذف البند');
+      closeEditModal();
+
+      if (_editCtx.mode === 'admin') {
+        await loadPrimaryExpensesForAdmin();
+        const { fm, fc } = window._admFilt || { fm:'الكل', fc:'الكل' };
+        await renderAdminExpenses(fm, fc);
+      }
+    } catch (e) {
+      toast('error','فشل', e.message || 'حدث خطأ');
+    }
+  });
+
+  // React bridge -> primary edit modal
+  window.__openEditModalBridge = (exp) => {
+    const u = window._fb?.auth?.currentUser;
+    if (!u || u.uid !== window._PRIMARY_UID) return;
+    openEditModal({ mode:'primary', id: exp.id, uid: u.uid, data: exp });
+  };
 
   function showLoginOnly() {
     document.getElementById('login-screen').style.display = 'flex';
@@ -413,7 +698,7 @@
   }
 
   function showUnauthorizedAndSignOut() {
-    alert('غير مصرح لهذا الحساب.');
+    toast('error','غير مصرح','هذا الحساب غير مسموح');
     showLoginOnly();
     waitFb(() => window._fb.signOut(window._fb.auth));
   }
@@ -422,7 +707,7 @@
   document.getElementById('btn-google-login').addEventListener('click', function () {
     waitFb(async () => {
       try { await window._fb.signInWithPopup(window._fb.auth, window._fb.provider); }
-      catch (e) { alert('فشل تسجيل الدخول: ' + e.message); }
+      catch (e) { toast('error','فشل الدخول', e.message); }
     });
   });
 
@@ -432,7 +717,7 @@
     setTimeout(() => document.getElementById('admin-email').focus(), 120);
   });
 
-  function closeModal() {
+  function closeAdminModal() {
     document.getElementById('admin-modal').classList.remove('show');
     document.getElementById('admin-error').style.display = 'none';
     document.getElementById('admin-email').value = '';
@@ -440,9 +725,9 @@
     document.getElementById('btn-admin-submit').disabled = false;
     document.getElementById('btn-admin-submit').textContent = 'دخول';
   }
-  document.getElementById('btn-admin-cancel').addEventListener('click', closeModal);
+  document.getElementById('btn-admin-cancel').addEventListener('click', closeAdminModal);
   document.getElementById('admin-modal').addEventListener('click', function (e) {
-    if (e.target === this) closeModal();
+    if (e.target === this) closeAdminModal();
   });
 
   async function doAdminLogin() {
@@ -455,10 +740,11 @@
     errEl.style.display = 'none';
     try {
       await window._fb.signInWithEmailAndPassword(window._fb.auth, email, password);
-      closeModal();
+      closeAdminModal();
     } catch (e) {
       errEl.style.display = 'block';
       btn.disabled = false; btn.textContent = 'دخول';
+      toast('error','فشل الدخول','تأكد من البيانات');
     }
   }
   document.getElementById('btn-admin-submit').addEventListener('click', () => waitFb(doAdminLogin));
@@ -474,13 +760,8 @@
   });
 
   // ──────────────────────────────────────────────────────────────
-  // Admin: view + edit + delete + KPI cards (spent + income + remaining)
-  // + إخفاء الإيميل في كل مكان
+  // Admin: KPI + filters + edit/delete
   // ──────────────────────────────────────────────────────────────
-
-  function escapeHtml(str) {
-    return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
-  }
 
   const _DEF_INCOME = 16500;
 
@@ -505,7 +786,13 @@
     el.textContent = `عرض: ${labelMonth}${labelCat}`;
   }
 
+  function _pct(x) { return isFinite(x) ? Math.max(0, Math.min(999, x)) : 0; }
+
   function _adminKpisHtml(income, spent, remaining) {
+    const ratio = income > 0 ? (spent / income) * 100 : 0;
+    const r = _pct(ratio);
+    const barClass = r < 70 ? 'kpi-p-good' : r < 95 ? 'kpi-p-warn' : 'kpi-p-bad';
+
     return `
       <div class="admin-kpis">
         <div class="kpi-card kpi-income">
@@ -513,7 +800,7 @@
             <div>
               <div class="kpi-label">الدخل الشهري</div>
               <div class="kpi-value">${Number(income).toLocaleString()} <span style="font-size:12px;font-weight:800;color:#64748b">ج.م</span></div>
-              <div class="kpi-sub"><span class="kpi-tag">مصدره: الإعدادات</span></div>
+              <div class="kpi-sub"><span class="kpi-tag">من الإعدادات</span></div>
             </div>
             <div class="kpi-icon">💵</div>
           </div>
@@ -524,7 +811,8 @@
             <div>
               <div class="kpi-label">إجمالي المصروفات</div>
               <div class="kpi-value">${Number(spent).toLocaleString()} <span style="font-size:12px;font-weight:800;color:#64748b">ج.م</span></div>
-              <div class="kpi-sub">حسب الفلاتر الحالية</div>
+              <div class="kpi-sub">نسبة الصرف: <b>${r.toFixed(0)}%</b></div>
+              <div class="kpi-progress"><div class="${barClass}" style="width:${Math.min(100, r)}%"></div></div>
             </div>
             <div class="kpi-icon">🧾</div>
           </div>
@@ -544,7 +832,10 @@
     `;
   }
 
-  // Admin local cache (بدون email)
+  function _ym(d){
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  }
+
   let adminData = { expenses: [], profile: { displayName: 'المستخدم الأساسي' } };
 
   async function loadPrimaryExpensesForAdmin() {
@@ -560,7 +851,6 @@
     try {
       const { db, collection, getDocs, query, orderBy, doc, getDoc } = window._fb;
 
-      // profile (optional) - لا نحتاج email
       let profile = { displayName: 'المستخدم الأساسي' };
       try {
         const pSnap = await getDoc(doc(db, 'users', PRIMARY_UID()));
@@ -576,8 +866,8 @@
       adminData = { profile, expenses };
       await renderAdminExpenses('الكل','الكل');
     } catch (e) {
-      console.error(e);
-      wrap.innerHTML = `<div class="no-selection" style="color:#ef4444">❌ خطأ: ${e.message}</div>`;
+      wrap.innerHTML = `<div class="no-selection" style="color:#ef4444">❌ خطأ: ${escapeHtml(e.message)}</div>`;
+      toast('error','خطأ', e.message || 'فشل التحميل');
     }
   }
 
@@ -586,7 +876,7 @@
     const expenses = adminData.expenses || [];
 
     const months = [...new Set(expenses.map(e=>e.date?e.date.slice(0,7):null).filter(Boolean))].sort().reverse();
-    const cats   = [...new Set(expenses.map(e=>e.category).filter(Boolean))];
+    const cats   = [...new Set(expenses.map(e=>e.category).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),'ar'));
 
     const list = expenses.filter(e => (fm==='الكل'||e.date?.startsWith(fm)) && (fc==='الكل'||e.category===fc));
     const total = list.reduce((s,e)=>s+(e.amount||0),0);
@@ -595,17 +885,25 @@
     const remaining = income - total;
 
     window._admFilt = { fm, fc };
-
     _setAdminTopbarFilterText(fm, fc);
+
+    const t = new Date();
+    const thisM = _ym(t);
+    const prev = new Date(t.getFullYear(), t.getMonth()-1, 1);
+    const prevM = _ym(prev);
 
     wrap.innerHTML = `
       ${_adminKpisHtml(income, total, remaining)}
 
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin:6px 0 12px">
         <div>
           <h3 style="font-size:15px;font-weight:900;color:#1e1b4b;margin:0">مصروفات: ${escapeHtml(adminData.profile?.displayName || 'المستخدم الأساسي')}</h3>
         </div>
-        <button class="btn-export-admin" onclick="window._expCsvAdmin()">⬇ تصدير CSV</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-quick" onclick="window._quickMonth('${thisM}')">هذا الشهر</button>
+          <button class="btn-quick" onclick="window._quickMonth('${prevM}')">الشهر السابق</button>
+          <button class="btn-export-admin" onclick="window._expCsvAdmin()">⬇ تصدير CSV</button>
+        </div>
       </div>
 
       <div class="admin-filters">
@@ -625,13 +923,13 @@
           <tbody>
             ${list.length ? list.map(e=>`
               <tr>
-                <td>${e.date||'-'}</td>
+                <td>${escapeHtml(e.date||'-')}</td>
                 <td>${escapeHtml(e.title||'-')}</td>
                 <td>${escapeHtml(e.category||'-')}</td>
-                <td style="font-weight:700;color:#4338ca">${(e.amount||0).toLocaleString()} ج.م</td>
+                <td style="font-weight:900;color:#4338ca">${(e.amount||0).toLocaleString()} ج.م</td>
                 <td style="white-space:nowrap">
-                  <button class="btn-mini btn-mini-primary" onclick="window._editExpenseAdmin('${e.id}')">تعديل</button>
-                  <button class="btn-mini btn-mini-danger" onclick="window._delExpenseAdmin('${e.id}')">حذف</button>
+                  <button class="btn-mini btn-mini-primary" onclick="window._adminEditOpen('${e.id}')">تعديل</button>
+                  <button class="btn-mini btn-mini-danger" onclick="window._adminDeleteOpen('${e.id}')">حذف</button>
                 </td>
               </tr>
             `).join('') + `
@@ -645,73 +943,32 @@
     `;
   }
 
-  // filters call
-  window._renderAdm = (fm, fc) => { renderAdminExpenses(fm, fc); };
-
-  window._delExpenseAdmin = async (expId) => {
-    const currentUser = window._fb.auth.currentUser;
-    if (!currentUser || currentUser.uid !== ADMIN_UID()) return alert('غير مصرح');
-    if (!confirm('حذف هذا البند؟')) return;
-
-    try {
-      const { db, doc, deleteDoc } = window._fb;
-      await deleteDoc(doc(db,'users',PRIMARY_UID(),'expenses',expId));
-      await loadPrimaryExpensesForAdmin();
-      const { fm, fc } = window._admFilt || { fm:'الكل', fc:'الكل' };
-      await renderAdminExpenses(fm, fc);
-    } catch (e) {
-      alert('فشل الحذف: ' + e.message);
-    }
+  window._quickMonth = async (ym) => {
+    const current = window._admFilt || { fm:'الكل', fc:'الكل' };
+    await renderAdminExpenses(ym, current.fc || 'الكل');
   };
 
-  window._editExpenseAdmin = async (expId) => {
-    const currentUser = window._fb.auth.currentUser;
-    if (!currentUser || currentUser.uid !== ADMIN_UID()) return alert('غير مصرح');
+  window._renderAdm = (fm, fc) => { renderAdminExpenses(fm, fc); };
 
-    const exp = (adminData.expenses || []).find(x => x.id === expId);
+  window._adminEditOpen = (id) => {
+    const exp = (adminData.expenses || []).find(x => x.id === id);
     if (!exp) return;
-
-    const title = prompt('الوصف:', exp.title || '');
-    if (title === null) return;
-
-    const amountStr = prompt('المبلغ (ج.م):', String(exp.amount ?? ''));
-    if (amountStr === null) return;
-    const amount = parseFloat(amountStr);
-    if (!(amount > 0)) return alert('مبلغ غير صحيح');
-
-    const category = prompt('التصنيف:', exp.category || '');
-    if (category === null) return;
-
-    const date = prompt('التاريخ (YYYY-MM-DD):', exp.date || '');
-    if (date === null) return;
-
-    try {
-      const { db, doc, updateDoc } = window._fb;
-      await updateDoc(doc(db,'users',PRIMARY_UID(),'expenses',expId), {
-        title: title.trim(),
-        amount,
-        category: category.trim(),
-        date: date.trim(),
-        updatedAt: Date.now(),
-        updatedBy: currentUser.uid
-      });
-
-      await loadPrimaryExpensesForAdmin();
-      const { fm, fc } = window._admFilt || { fm:'الكل', fc:'الكل' };
-      await renderAdminExpenses(fm, fc);
-    } catch (e) {
-      alert('فشل التعديل: ' + e.message);
-    }
+    openEditModal({ mode:'admin', id, uid: PRIMARY_UID(), data: exp });
+  };
+  window._adminDeleteOpen = (id) => {
+    const exp = (adminData.expenses || []).find(x => x.id === id);
+    if (!exp) return;
+    openEditModal({ mode:'admin', id, uid: PRIMARY_UID(), data: exp });
   };
 
   window._expCsvAdmin = () => {
     const { fm, fc } = window._admFilt || { fm:'الكل', fc:'الكل' };
     const expenses = adminData.expenses || [];
     const list = expenses.filter(e => (fm==='الكل'||e.date?.startsWith(fm)) && (fc==='الكل'||e.category===fc));
-    if (!list.length) { alert('لا توجد بيانات'); return; }
+    if (!list.length) { toast('info','تنبيه','لا توجد بيانات للتصدير'); return; }
     const total = list.reduce((s,e)=>s+(e.amount||0),0);
 
-    const csv = '\uFEFF'+[['التاريخ','الوصف','التصنيف','المبلغ (ج.م)'],
+    const csv = '\uFEFF'+[['التاريخ','��لوصف','التصنيف','المبلغ (ج.م)'],
       ...list.map(e=>[e.date,e.title,e.category,e.amount]),
       ['','','الإجمالي',total]
     ].map(r=>r.join(',')).join('\n');
@@ -720,11 +977,12 @@
     a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
     a.download = `مصروفات_${fm}.csv`;
     a.click();
+    toast('success','تم','تم تجهيز ملف CSV');
   };
 
   // ──────────────────────────────────────────────────────────────
-  // Auth gating: admin goes directly to admin screen, primary to app
-  // + لا نظهر الإيميل في الشريط العلوي مطلقاً
+  // Auth gating: admin -> admin screen, primary -> app
+  // + لا نظهر الإيميل في أي مكان
   // ──────────────────────────────────────────────────────────────
   waitFb(() => {
     window._fb.onAuthStateChanged(window._fb.auth, async (user) => {
@@ -733,40 +991,37 @@
         return;
       }
 
-      // allow only primary or admin
       if (!isPrimary(user) && !isAdmin(user)) {
         showUnauthorizedAndSignOut();
         return;
       }
 
-      // user bar always visible after login (NAME ONLY)
       document.getElementById('user-bar').classList.add('show');
       document.getElementById('user-name').textContent = _safeName(user.displayName);
       document.getElementById('user-avatar').src = user.photoURL || '';
 
-      // save profile (we can still store email in Firestore if you want, but not display it)
       const { db, doc, setDoc } = window._fb;
       setDoc(doc(db, 'users', user.uid), {
         displayName: user.displayName || '',
-        email: user.email || '',       // محفوظ لكن غير معروض
+        email: user.email || '', // محفوظ فقط (غير معروض)
         photoURL: user.photoURL || '',
         lastLogin: Date.now()
       }, { merge: true }).catch(() => {});
 
-      // ADMIN: go directly to admin expenses view
       if (isAdmin(user)) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app-screen').classList.remove('show');
         document.getElementById('admin-panel').classList.add('show');
         await loadPrimaryExpensesForAdmin();
+        toast('success','مرحبًا', 'تم الدخول كأدمن');
         return;
       }
 
-      // PRIMARY: show the normal app
       if (isPrimary(user)) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('admin-panel').classList.remove('show');
         document.getElementById('app-screen').classList.add('show');
+        toast('success','مرحبًا', 'تم تسجيل الدخول');
         return;
       }
     });
@@ -774,7 +1029,9 @@
 })();
 </script>
 
-<!-- ════════ REACT APP (Primary only) ════════ -->
+<!-- ======================
+     REACT APP (Primary)
+     ====================== -->
 <script type="text/babel">
 const { useState, useEffect, useMemo } = React;
 const { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } = window.Recharts;
@@ -785,41 +1042,87 @@ const Icon = ({ name, size=20, className='' }) => {
 };
 
 const CATS = [
-  'خضار وفاكهه','فراخ','لحوم','علافة و توابل','صيدلية','زيت وسمن','عيش و فينو','مخبوزات',
-  'جبن و البان','سوبر ماركت','مواصلات','أخرى'
+  'خضار وفاكهه','فراخ','لحوم','علافة و توابل','مسحوق غسيل',
+  'مناديل','منظفات ارضيات','معجون','زيت وسمن','مكرونة و رز',
+  'صوصات وصلصة','شامبو وكريمات','عيش و فينو','مخبوزات',
+  'جبن و البان','سوبر ماركت','أدوية','أخرى'
 ];
-const COLORS = ['#6366F1','#EF4444','#10B981','#F59E0B','#8B5CF6','#EC4899','#06B6D4','#F97316','#14B8A6','#F43F5E'];
 
-const now = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; };
+const CAT_COLORS = {
+  'خضار وفاكهه': '#10b981',
+  'فراخ': '#ef4444',
+  'لحوم': '#f97316',
+  'علافة و توابل': '#8b5cf6',
+  'مسحوق غسيل': '#06b6d4',
+  'مناديل': '#ec4899',
+  'منظفات ارضيات': '#6366f1',
+  'معجون': '#14b8a6',
+  'زيت وسمن': '#f59e0b',
+  'مكرونة و رز': '#4338ca',
+  'صوصات وصلصة': '#fb7185',
+  'شامبو وكريمات': '#a855f7',
+  'عيش و فينو': '#22c55e',
+  'مخبوزات': '#eab308',
+  'جبن و البان': '#60a5fa',
+  'سوبر ماركت': '#94a3b8',
+  'أدوية': '#0ea5e9',
+  'أخرى': '#64748b'
+};
+
+const COLORS_FALLBACK = ['#6366F1','#EF4444','#10B981','#F59E0B','#8B5CF6','#EC4899','#06B6D4','#F97316','#14B8A6','#F43F5E'];
+
+const nowYM = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; };
+const ymOf = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+
 const fmtMonth = m => {
   if (m==='الكل') return 'كافة الشهور';
   const [y,mo]=m.split('-');
   const lbl = new Date(y,parseInt(mo)-1).toLocaleDateString('ar-EG',{month:'long',year:'numeric'});
-  return m===now()?`${lbl} (الحالي)`:lbl;
+  return m===nowYM()?`${lbl} (الحالي)`:lbl;
 };
+
+const HIGH_THRESHOLD = 500;
 
 const App = () => {
   const [expenses,setExpenses]   = useState([]);
   const [user,setUser]           = useState(null);
+  const [income,setIncome]       = useState(0);
+
   const [title,setTitle]         = useState('');
   const [amount,setAmount]       = useState('');
   const [cat,setCat]             = useState(CATS[0]);
   const [date,setDate]           = useState(new Date().toISOString().split('T')[0]);
+
   const [fCat,setFCat]           = useState('الكل');
-  const [fMonth,setFMonth]       = useState(now());
+  const [fMonth,setFMonth]       = useState(nowYM());
+  const [q,setQ]                 = useState('');
   const [reminder,setReminder]   = useState(false);
 
   useEffect(() => {
     const init = () => {
-      const {auth,onAuthStateChanged,db,collection,query,orderBy,onSnapshot} = window._fb;
-      onAuthStateChanged(auth, u => {
-        setUser(u||null);
-        if (window._fbUnsub) { window._fbUnsub(); window._fbUnsub = null; }
+      const {auth,onAuthStateChanged,db,collection,query,orderBy,onSnapshot,doc,getDoc} = window._fb;
 
-        // React app is intended for primary only
+      onAuthStateChanged(auth, async (u) => {
+        setUser(u||null);
+
         if (u && u.uid === window._PRIMARY_UID) {
-          const q = query(collection(db,'users',u.uid,'expenses'),orderBy('createdAt','desc'));
-          window._fbUnsub = onSnapshot(q, s => setExpenses(s.docs.map(d=>({id:d.id,...d.data()}))));
+          try{
+            const snap = await getDoc(doc(db,'users',u.uid,'settings','main'));
+            if (snap.exists()) {
+              const v = parseFloat((snap.data()||{}).defaultMonthlyIncome);
+              setIncome(isFinite(v) ? v : 0);
+            } else {
+              setIncome(0);
+            }
+          }catch(_){ setIncome(0); }
+        } else {
+          setIncome(0);
+        }
+
+        if (window._fbUnsub) { window._fbUnsub(); window._fbUnsub = null; }
+        if (u && u.uid === window._PRIMARY_UID) {
+          const qx = query(collection(db,'users',u.uid,'expenses'),orderBy('createdAt','desc'));
+          window._fbUnsub = onSnapshot(qx, s => setExpenses(s.docs.map(d=>({id:d.id,...d.data()}))));
         } else {
           setExpenses([]);
         }
@@ -839,40 +1142,147 @@ const App = () => {
     }
   },[expenses]);
 
-  const months = useMemo(()=>[...new Set([...expenses.map(e=>e.date?.slice(0,7)).filter(Boolean),now()])].sort().reverse(),[expenses]);
-  const filtered = useMemo(()=>expenses.filter(e=>(fMonth==='الكل'||e.date?.startsWith(fMonth))&&(fCat==='الكل'||e.category===fCat)),[expenses,fMonth,fCat]);
-  const total    = useMemo(()=>filtered.reduce((s,e)=>s+(e.amount||0),0),[filtered]);
+  const months = useMemo(()=>[...new Set([...expenses.map(e=>e.date?.slice(0,7)).filter(Boolean), nowYM()])].sort().reverse(),[expenses]);
+
+  const filtered = useMemo(() => {
+    const qq = q.trim().toLowerCase();
+    return expenses.filter(e => {
+      const okMonth = (fMonth==='الكل'||e.date?.startsWith(fMonth));
+      const okCat = (fCat==='الكل'||e.category===fCat);
+      const okQ = !qq || String(e.title||'').toLowerCase().includes(qq);
+      return okMonth && okCat && okQ;
+    });
+  }, [expenses, fMonth, fCat, q]);
+
+  // remaining based on selected month (as requested)
+  const spentForSelectedMonth = useMemo(() => {
+    if (fMonth === 'الكل') return filtered.reduce((s,e)=>s+(e.amount||0),0);
+    const monthOnly = expenses.filter(e => e.date?.startsWith(fMonth));
+    return monthOnly.reduce((s,e)=>s+(e.amount||0),0);
+  }, [expenses, filtered, fMonth]);
+
+  const remainingForSelectedMonth = useMemo(() => income - spentForSelectedMonth, [income, spentForSelectedMonth]);
+
+  const spendPct = useMemo(() => {
+    if (!(income > 0)) return 0;
+    return Math.max(0, Math.min(999, (spentForSelectedMonth / income) * 100));
+  }, [income, spentForSelectedMonth]);
+
+  const barClass = spendPct < 70 ? 'p-good' : spendPct < 95 ? 'p-warn' : 'p-bad';
+
+  const totalFiltered = useMemo(()=>filtered.reduce((s,e)=>s+(e.amount||0),0),[filtered]);
   const maxExp   = useMemo(()=>filtered.length?Math.max(...filtered.map(e=>e.amount||0)):0,[filtered]);
-  const topCats  = useMemo(()=>{const m={};filtered.forEach(e=>{m[e.category]=(m[e.category]||0)+(e.amount||0);});return Object.entries(m).map(([n,v])=>({n,v})).sort((a,b)=>b.v-a.v).slice(0,3);},[filtered]);
-  const chartData= useMemo(()=>{const m={};filtered.forEach(e=>{m[e.category]=(m[e.category]||0)+(e.amount||0);});return Object.entries(m).map(([name,value])=>({name,value}));},[filtered]);
+
+  const chartData= useMemo(()=> {
+    const m={}; filtered.forEach(e=>{m[e.category]=(m[e.category]||0)+(e.amount||0);});
+    return Object.entries(m).map(([name,value])=>({name,value}));
+  },[filtered]);
 
   const addExpense = async ev => {
     ev.preventDefault();
     if (!title||!amount||!user) return;
-    if (user.uid !== window._PRIMARY_UID) return alert('غير مصرح');
+    if (user.uid !== window._PRIMARY_UID) return;
 
     const val = parseFloat(amount);
-    if (!(val > 0)) return alert('أدخل مبلغ صحيح');
+    if (!(val > 0)) { window.toast?.('error','خطأ','أدخل مبلغ صحيح'); return; }
 
     const {db,collection,addDoc}=window._fb;
-    await addDoc(collection(db,'users',user.uid,'expenses'),{title,amount:val,category:cat,date,createdAt:Date.now()});
-    setTitle(''); setAmount(''); setFMonth(date.slice(0,7));
+    try {
+      await addDoc(collection(db,'users',user.uid,'expenses'),{
+        title, amount: val, category: cat, date,
+        createdAt: Date.now()
+      });
+      setTitle(''); setAmount('');
+      setFMonth(date.slice(0,7));
+      window.toast?.('success','تم','تم حفظ العملية');
+    } catch (e) {
+      window.toast?.('error','فشل', e.message || 'حدث خطأ');
+    }
   };
 
   const exportCsv = (tm='all') => {
     const data = tm==='all'?expenses:expenses.filter(e=>e.date?.startsWith(tm));
-    if (!data.length){alert('لا توجد بيانات');return;}
+    if (!data.length){ window.toast?.('info','تنبيه','لا توجد بيانات'); return; }
     const t=data.reduce((s,e)=>s+(e.amount||0),0);
-    const csv='\uFEFF'+[['التاريخ','الوصف','القسم','المبلغ (ج.م)'],...data.map(e=>[e.date,e.title,e.category,e.amount]),['','','الإجمالي',t]].map(r=>r.join(',')).join('\n');
+    const csv='\uFEFF'+[['التاريخ','الوصف','القسم','المبلغ (ج.م)'],
+      ...data.map(e=>[e.date,e.title,e.category,e.amount]),
+      ['','','الإجمالي',t]
+    ].map(r=>r.join(',')).join('\n');
     const a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
     a.download=`مصروفات_${tm==='all'?'كاملة':tm}.csv`; a.click();
     if(tm!=='all'){localStorage.setItem(`exported_${tm}`,'true');setReminder(false);}
+    window.toast?.('success','تم','تم تجهيز ملف CSV');
+  };
+
+  const quickThisMonth = () => setFMonth(nowYM());
+  const quickPrevMonth = () => {
+    const d = new Date();
+    const prev = new Date(d.getFullYear(), d.getMonth()-1, 1);
+    setFMonth(ymOf(prev));
+  };
+
+  const openPrimaryEdit = (exp) => {
+    if (!user || user.uid !== window._PRIMARY_UID) return;
+    window.__openEditModalBridge?.(exp);
   };
 
   return (
     <div className="min-h-screen p-3 sm:p-4 md:p-6 lg:p-8 xl:p-10">
       <div className="max-w-screen-xl mx-auto space-y-4 sm:space-y-5 lg:space-y-6">
+
+        <div className="quick-row">
+          <button className="qbtn" onClick={quickThisMonth}>هذا الشهر</button>
+          <button className="qbtn" onClick={quickPrevMonth}>الشهر السابق</button>
+          <button className="qbtn" onClick={()=>exportCsv('all')}>تصدير CSV</button>
+        </div>
+
+        <div className="kpi-grid-primary">
+          <div className="p-kpi p-income">
+            <div className="top">
+              <div>
+                <div className="label">الدخل الشهري</div>
+                <div className="val">{Number(income||0).toLocaleString()} <span style={{fontSize:12,fontWeight:800,color:'#64748b'}}>ج.م</span></div>
+                <div className="sub">ثابت شهريًا</div>
+              </div>
+              <div className="p-ic">💵</div>
+            </div>
+          </div>
+
+          <div className="p-kpi p-spent">
+            <div className="top">
+              <div>
+                <div className="label">مصروفات الشهر</div>
+                <div className="val">{Number(spentForSelectedMonth||0).toLocaleString()} <span style={{fontSize:12,fontWeight:800,color:'#64748b'}}>ج.م</span></div>
+                <div className="sub">حسب شهر: <b>{fMonth==='الكل'?'الكل':fMonth}</b> — <b>{Math.round(spendPct)}%</b></div>
+                <div className="p-progress"><div className={barClass} style={{width: `${Math.min(100, spendPct)}%`}}></div></div>
+              </div>
+              <div className="p-ic">🧾</div>
+            </div>
+          </div>
+
+          <div className={`p-kpi p-rem ${remainingForSelectedMonth < 0 ? 'neg':''}`}>
+            <div className="top">
+              <div>
+                <div className="label">المتبقي من الدخل</div>
+                <div className="val">{Number(remainingForSelectedMonth||0).toLocaleString()} <span style={{fontSize:12,fontWeight:800,color:'#64748b'}}>ج.م</span></div>
+                <div className="sub">{remainingForSelectedMonth < 0 ? '⚠️ تم تجاوز الدخل' : 'متبقي'}</div>
+              </div>
+              <div className="p-ic">{remainingForSelectedMonth < 0 ? '⚠️' : '📌'}</div>
+            </div>
+          </div>
+
+          <div className="p-kpi">
+            <div className="top">
+              <div>
+                <div className="label">ملخص الفلتر</div>
+                <div className="val">{Number(totalFiltered||0).toLocaleString()} <span style={{fontSize:12,fontWeight:800,color:'#64748b'}}>ج.م</span></div>
+                <div className="sub">عمليات: <b>{filtered.length}</b> — أعلى بند: <b>{Number(maxExp||0).toLocaleString()}</b></div>
+              </div>
+              <div className="p-ic" style={{background:'linear-gradient(135deg,#ec4899,#be185d)'}}>📊</div>
+            </div>
+          </div>
+        </div>
 
         {reminder && (
           <div className="bg-amber-50 border-2 border-amber-200 p-4 sm:p-5 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -890,92 +1300,74 @@ const App = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-          <div className="bg-white p-4 sm:p-5 lg:p-6 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-100 flex flex-col justify-between min-h-[100px]">
-            <div className="flex items-center justify-between">
-              <h1 className="text-sm sm:text-base lg:text-lg font-black text-slate-800 flex items-center gap-2">
-                <Icon name="layout-dashboard" className="text-indigo-600" size={20}/>ميزانية المنزل
-              </h1>
-              <button onClick={()=>exportCsv('all')} className="p-2 bg-slate-50 text-slate-400 rounded-xl hover:text-emerald-600 hover:bg-emerald-50 transition-all"><Icon name="download" size={16}/></button>
-            </div>
-            <div className="mt-3">
-              <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">الشهر المختار</p>
-              <p className="text-xs sm:text-sm lg:text-base font-bold text-indigo-900">{fmtMonth(fMonth)}</p>
-            </div>
-          </div>
-
-          <div className="bg-indigo-600 p-4 sm:p-5 lg:p-6 rounded-2xl sm:rounded-3xl text-white shadow-lg shadow-indigo-100 flex flex-col justify-center">
-            <span className="text-[9px] sm:text-[10px] font-black opacity-80 uppercase tracking-widest">إجمالي المصروفات</span>
-            <div className="text-2xl sm:text-3xl lg:text-4xl font-black leading-none my-1">{total.toLocaleString()} <span className="text-sm font-normal">ج.م</span></div>
-            <div className="mt-2 pt-2 border-t border-indigo-400/30 flex justify-between text-xs">
-              <span className="font-bold opacity-80">أعلى عملية:</span>
-              <span className="font-black">{maxExp.toLocaleString()} ج.م</span>
-            </div>
-          </div>
-
-          <div className="bg-white p-4 sm:p-5 lg:p-6 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-100">
-            <h3 className="text-[10px] font-black text-slate-400 uppercase mb-3 flex items-center gap-1">
-              <Icon name="trending-up" size={12} className="text-pink-500"/>أعلى 3 فئات
-            </h3>
-            <div className="space-y-2 sm:space-y-2.5">
-              {topCats.length>0?topCats.map((c,i)=>(
-                <div key={c.n} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center bg-slate-100 text-[9px] sm:text-[10px] font-black rounded-full text-slate-500">{i+1}</span>
-                    <span className="text-xs sm:text-sm font-bold text-slate-700 truncate max-w-[100px] sm:max-w-[130px]">{c.n}</span>
-                  </div>
-                  <span className="text-xs sm:text-sm font-black text-indigo-600 flex-shrink-0">{c.v.toLocaleString()} <span className="text-[9px] font-normal text-slate-400">ج.م</span></span>
-                </div>
-              )):<div className="text-xs italic text-slate-300">لا توجد بيانات كافية</div>}
-            </div>
-          </div>
-        </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 lg:gap-6">
+          {/* Add form */}
           <div className="lg:col-span-4">
             <div className="bg-white p-4 sm:p-5 lg:p-6 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-100 lg:sticky lg:top-16">
               <h2 className="text-sm sm:text-base lg:text-lg font-bold mb-4 flex items-center gap-2 text-slate-800">
                 <Icon name="plus-circle" className="text-indigo-500" size={18}/>إضافة بند
               </h2>
+
               <form onSubmit={addExpense} className="space-y-3">
                 <div>
                   <label className="text-xs font-bold text-slate-400 block mb-1">وصف المصروف</label>
-                  <input type="text" value={title} onChange={e=>setTitle(e.target.value)} placeholder="مثلاً: خضار الأسبوع" className="w-full p-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-800 text-sm" required/>
+                  <input type="text" value={title} onChange={e=>setTitle(e.target.value)} placeholder="مثلاً: خضار الأسبوع"
+                    className="w-full p-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-800 text-sm" required/>
                 </div>
+
                 <div>
                   <label className="text-xs font-bold text-slate-400 block mb-1">المبلغ (ج.م)</label>
-                  <input type="number" inputMode="decimal" value={amount} onChange={e=>setAmount(e.target.value)} placeholder="0.00" className="w-full p-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 font-black text-xl text-indigo-900" required/>
+                  <input type="number" inputMode="decimal" value={amount} onChange={e=>setAmount(e.target.value)} placeholder="0.00"
+                    className="w-full p-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 font-black text-xl text-indigo-900" required/>
                 </div>
+
                 <div>
                   <label className="text-xs font-bold text-slate-400 block mb-1">التصنيف</label>
-                  <select value={cat} onChange={e=>setCat(e.target.value)} className="w-full p-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none font-bold cursor-pointer text-slate-700 text-sm">
+                  <select value={cat} onChange={e=>setCat(e.target.value)}
+                    className="w-full p-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none font-bold cursor-pointer text-slate-700 text-sm">
                     {CATS.map(c=><option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
+
                 <div>
                   <label className="text-xs font-bold text-slate-400 block mb-1">التاريخ</label>
-                  <input type="date" value={date} onChange={e=>setDate(e.target.value)} className="w-full p-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none font-bold text-slate-700 text-sm"/>
+                  <input type="date" value={date} onChange={e=>setDate(e.target.value)}
+                    className="w-full p-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none font-bold text-slate-700 text-sm"/>
                 </div>
-                <button type="submit" className="w-full py-3 bg-indigo-600 text-white font-black rounded-2xl shadow-lg hover:bg-indigo-700 active:scale-95 transition-all text-sm">☁️ حفظ العملية</button>
+
+                <button type="submit"
+                  className="w-full py-3 bg-indigo-600 text-white font-black rounded-2xl shadow-lg hover:bg-indigo-700 active:scale-95 transition-all text-sm">
+                  ☁️ حفظ العملية
+                </button>
               </form>
             </div>
           </div>
 
+          {/* Filters + chart + list */}
           <div className="lg:col-span-8 space-y-4 sm:space-y-5">
-            <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="text-[10px] font-black text-slate-400 uppercase block mb-1">الشهر</label>
-                <select value={fMonth} onChange={e=>setFMonth(e.target.value)} className="w-full p-3 bg-pink-50 border border-pink-100 rounded-2xl outline-none font-bold text-pink-700 cursor-pointer text-sm">
+                <select value={fMonth} onChange={e=>setFMonth(e.target.value)}
+                  className="w-full p-3 bg-pink-50 border border-pink-100 rounded-2xl outline-none font-bold text-pink-700 cursor-pointer text-sm">
                   <option value="الكل">كل السجل</option>
                   {months.map(m=><option key={m} value={m}>{fmtMonth(m)}</option>)}
                 </select>
               </div>
+
               <div>
                 <label className="text-[10px] font-black text-slate-400 uppercase block mb-1">التصنيف</label>
-                <select value={fCat} onChange={e=>setFCat(e.target.value)} className="w-full p-3 bg-indigo-50 border border-indigo-100 rounded-2xl outline-none font-bold text-indigo-700 cursor-pointer text-sm">
+                <select value={fCat} onChange={e=>setFCat(e.target.value)}
+                  className="w-full p-3 bg-indigo-50 border border-indigo-100 rounded-2xl outline-none font-bold text-indigo-700 cursor-pointer text-sm">
                   <option value="الكل">جميع التصنيفات</option>
                   {CATS.map(c=><option key={c} value={c}>{c}</option>)}
                 </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black text-slate-400 uppercase block mb-1">بحث</label>
+                <input value={q} onChange={e=>setQ(e.target.value)} placeholder="ابحث بالوصف..."
+                  className="w-full p-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700 text-sm"/>
               </div>
             </div>
 
@@ -988,9 +1380,12 @@ const App = () => {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie data={chartData} innerRadius="38%" outerRadius="62%" paddingAngle={4} dataKey="value">
-                        {chartData.map((_,i)=><Cell key={i} fill={COLORS[i%COLORS.length]}/>)}
+                        {chartData.map((d,i)=>(
+                          <Cell key={i} fill={CAT_COLORS[d.name] || COLORS_FALLBACK[i%COLORS_FALLBACK.length]} />
+                        ))}
                       </Pie>
-                      <Tooltip contentStyle={{borderRadius:'12px',border:'none',boxShadow:'0 8px 24px rgba(0,0,0,0.1)',textAlign:'right',fontFamily:'Cairo',fontSize:'13px'}} itemStyle={{fontWeight:'bold'}}/>
+                      <Tooltip contentStyle={{borderRadius:'12px',border:'none',boxShadow:'0 8px 24px rgba(0,0,0,0.1)',textAlign:'right',fontFamily:'Cairo',fontSize:'13px'}}
+                        itemStyle={{fontWeight:'bold'}}/>
                     </PieChart>
                   </ResponsiveContainer>
                 ):(
@@ -1002,35 +1397,48 @@ const App = () => {
             <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
               <div className="p-4 sm:p-5 bg-slate-50/50 border-b font-bold flex justify-between items-center text-slate-700 text-sm">
                 <span>قائمة المصروفات ({filtered.length})</span>
-                <Icon name="arrow-down-narrow-wide" size={16}/>
+                <span className="text-[11px] font-black text-slate-400">اضغط للتعديل</span>
               </div>
+
               <div className="max-h-[350px] sm:max-h-[450px] lg:max-h-[550px] overflow-y-auto custom-scrollbar divide-y divide-slate-50">
                 {filtered.length>0?filtered.map(exp=>(
-                  <div key={exp.id} className="p-3 sm:p-4 lg:p-5 flex justify-between items-center hover:bg-slate-50 transition-colors group">
+                  <button key={exp.id}
+                    onClick={()=>openPrimaryEdit(exp)}
+                    className="w-full text-right p-3 sm:p-4 lg:p-5 flex justify-between items-center hover:bg-slate-50 transition-colors group">
                     <div className="flex gap-2 sm:gap-3 items-center min-w-0">
                       <div className="w-8 h-8 sm:w-10 sm:h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors flex-shrink-0">
                         <Icon name="receipt" size={15}/>
                       </div>
+
                       <div className="min-w-0">
                         <div className="font-bold text-slate-800 text-xs sm:text-sm truncate">{exp.title}</div>
-                        <div className="text-[10px] text-slate-400 font-bold flex gap-2 mt-0.5 flex-wrap">
+
+                        <div className="text-[10px] text-slate-400 font-bold flex gap-2 mt-0.5 flex-wrap items-center">
                           <span>{exp.date}</span>
-                          <span className="text-indigo-500 font-black">#{exp.category}</span>
+
+                          <span className="cat-badge">
+                            <span className="cat-dot" style={{background: CAT_COLORS[exp.category] || '#6366f1'}}></span>
+                            {exp.category}
+                          </span>
+
+                          {(exp.amount||0) >= HIGH_THRESHOLD && <span className="big-badge">مرتفع</span>}
                         </div>
                       </div>
                     </div>
+
                     <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                       <div className="text-left">
                         <div className="text-sm sm:text-lg font-black text-slate-800">{(exp.amount||0).toLocaleString()}</div>
                         <div className="text-[9px] text-slate-400 font-bold uppercase">جنية</div>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 )):(
                   <div className="p-12 sm:p-16 text-center text-slate-300 font-bold italic text-sm">السجل فارغ لهذا الاختيار</div>
                 )}
               </div>
             </div>
+
           </div>
         </div>
 
@@ -1042,5 +1450,6 @@ const App = () => {
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
 </script>
+
 </body>
 </html>
