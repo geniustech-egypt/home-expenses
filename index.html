@@ -18,10 +18,13 @@
     <!-- Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInWithEmailAndPassword }
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
             from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, getDocs, setDoc }
-            from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import {
+            getFirestore, collection, addDoc, deleteDoc, doc,
+            onSnapshot, query, orderBy, getDocs, setDoc,
+            updateDoc, getDoc
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const app = initializeApp({
             apiKey: "AIzaSyAhaL-igY-b8MfT3CuXaxJHYmXGzPffOio",
@@ -34,9 +37,11 @@
         const auth = getAuth(app);
         const db   = getFirestore(app);
         const provider = new GoogleAuthProvider();
-        window._fb = { auth, db, provider, signInWithPopup, signOut, onAuthStateChanged,
-            signInWithEmailAndPassword, collection, addDoc, deleteDoc, doc,
-            onSnapshot, query, orderBy, getDocs, setDoc };
+        window._fb = {
+            auth, db, provider, signInWithPopup, signOut, onAuthStateChanged,
+            collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, getDocs, setDoc,
+            updateDoc, getDoc
+        };
         window._ADMIN_UID = 'j1l7huaXciN54etwobUCJdI7syy1';
         window.dispatchEvent(new Event('fb-ready'));
     </script>
@@ -84,49 +89,6 @@
         .btn-login-google { background:white; border-color:#e5e7eb; color:#374151; }
         .btn-login-google:hover { border-color:#6366f1; background:#f5f3ff; transform:translateY(-2px); box-shadow:0 8px 24px rgba(99,102,241,0.15); }
         .btn-login-google svg { width:22px; height:22px; flex-shrink:0; }
-        .btn-login-admin { background:#1e1b4b; border-color:#1e1b4b; color:white; }
-        .btn-login-admin:hover { background:#312e81; border-color:#312e81; transform:translateY(-2px); box-shadow:0 8px 24px rgba(30,27,75,0.25); }
-        .or-divider { display:flex; align-items:center; gap:12px; margin:16px 0; }
-        .or-divider::before,.or-divider::after { content:''; flex:1; height:1px; background:#e5e7eb; }
-        .or-divider span { color:#9ca3af; font-size:12px; font-weight:600; }
-
-        /* ─── ADMIN MODAL ─── */
-        #admin-modal {
-            display:none; position:fixed; inset:0; z-index:2000;
-            background:rgba(15,23,42,0.7); backdrop-filter:blur(6px);
-            align-items:center; justify-content:center; padding:20px;
-        }
-        #admin-modal.show { display:flex; }
-        .modal-card {
-            background:white; border-radius:24px; width:100%; max-width:420px;
-            padding:clamp(28px,5vw,48px) clamp(24px,5vw,44px); text-align:center;
-            box-shadow:0 30px 80px rgba(0,0,0,0.3); border-top:4px solid #4338ca;
-            animation:modalIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
-        }
-        @keyframes modalIn { from{opacity:0;transform:scale(0.92) translateY(16px)} to{opacity:1;transform:none} }
-        .modal-card h2 { font-size:clamp(17px,3vw,22px); font-weight:900; color:#1e1b4b; margin:0 0 6px; }
-        .modal-card p  { font-size:13px; color:#6b7280; margin:0 0 24px; line-height:1.7; }
-        .modal-input {
-            width:100%; padding:13px 16px; border:1.5px solid #e0e7ff;
-            border-radius:12px; font-family:'Cairo',sans-serif; font-size:14px;
-            font-weight:600; color:#1e1b4b; outline:none; margin-bottom:10px;
-            transition:border-color 0.2s,box-shadow 0.2s; text-align:right; display:block;
-        }
-        .modal-input:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,0.12); }
-        .modal-input::placeholder { color:#9ca3af; font-weight:400; }
-        .btn-modal-submit {
-            width:100%; padding:14px; background:#4338ca; color:white; border:none;
-            border-radius:12px; font-family:'Cairo',sans-serif; font-size:15px; font-weight:800;
-            cursor:pointer; transition:all 0.2s; margin-top:4px; display:block;
-        }
-        .btn-modal-submit:hover { background:#3730a3; transform:translateY(-1px); }
-        .btn-modal-submit:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
-        .btn-modal-cancel {
-            background:none; border:none; color:#9ca3af; font-family:'Cairo',sans-serif;
-            font-size:13px; cursor:pointer; margin-top:14px; font-weight:600; display:block; width:100%;
-        }
-        .btn-modal-cancel:hover { color:#6b7280; }
-        .modal-error { color:#ef4444; font-size:12px; font-weight:700; margin-top:8px; display:none; }
 
         /* ─── USER BAR ─── */
         #user-bar {
@@ -142,7 +104,7 @@
         .sync-badge { font-size:11px; color:#10b981; font-weight:700; display:flex; align-items:center; gap:4px; }
         .sync-dot { width:7px; height:7px; border-radius:50%; background:#10b981; animation:pulse 1.5s infinite; }
         @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
-        .ubar-right { display:flex; align-items:center; gap:8px; }
+        .ubar-right { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
         .btn-bar {
             border-radius:8px; padding:5px 12px; font-family:'Cairo',sans-serif;
             font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s; border:1px solid;
@@ -164,7 +126,7 @@
             background-repeat:no-repeat; background-position:left 0.75rem center; background-size:1.1em;
         }
 
-        /* ─── ADMIN PANEL ─── */
+        /* ─── ADMIN PANEL (Settings) ─── */
         #admin-panel {
             display:none; position:fixed; inset:0; z-index:500;
             background:#f8fafc; overflow-y:auto;
@@ -183,44 +145,34 @@
             font-family:'Cairo',sans-serif; font-size:13px; font-weight:700; cursor:pointer; flex-shrink:0;
         }
         .btn-close-admin:hover { background:rgba(255,255,255,0.22); }
-        .admin-body { max-width:1300px; margin:0 auto; padding:clamp(16px,3vw,32px) clamp(12px,3vw,28px); }
-        .admin-users-grid {
-            display:grid;
-            grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr));
-            gap:14px; margin-bottom:28px;
+        .admin-body { max-width:900px; margin:0 auto; padding:clamp(16px,3vw,32px) clamp(12px,3vw,28px); }
+
+        .admin-box {
+            background:white; border-radius:20px; padding:18px; border:1px solid #e0e7ff;
+            box-shadow:0 10px 30px rgba(15,23,42,0.06);
         }
-        .user-card {
-            background:white; border:2px solid #e0e7ff; border-radius:18px;
-            padding:16px 18px; cursor:pointer; transition:all 0.2s;
+        .admin-row { display:grid; grid-template-columns: 1fr; gap:12px; }
+        @media (min-width: 640px) {
+            .admin-row { grid-template-columns: 1fr 1fr; }
         }
-        .user-card:hover,.user-card.active { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,0.12); }
-        .user-card .uname { font-weight:800; font-size:14px; color:#1e1b4b; margin-bottom:2px; }
-        .user-card .uemail { font-size:11px; color:#6b7280; margin-bottom:10px; word-break:break-all; }
-        .user-card .ustats { display:flex; gap:8px; flex-wrap:wrap; }
-        .ustat { background:#f5f3ff; border-radius:8px; padding:4px 10px; font-size:11px; font-weight:700; color:#4338ca; }
-        .admin-expenses-wrap { background:white; border-radius:20px; padding:clamp(16px,3vw,24px); border:1px solid #e0e7ff; }
-        .admin-filters { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
-        .admin-select {
-            padding:9px 36px 9px 14px; border:1px solid #e0e7ff; border-radius:10px;
-            font-family:'Cairo',sans-serif; font-size:13px; font-weight:700;
-            color:#4338ca; background:#f5f3ff; outline:none; cursor:pointer; appearance:none;
-            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236366f1'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-            background-repeat:no-repeat; background-position:left 10px center; background-size:16px;
+        .admin-field label { display:block; font-size:12px; font-weight:800; color:#4338ca; margin-bottom:6px; }
+        .admin-field input {
+            width:100%; padding:12px 14px; border:1.5px solid #e0e7ff; border-radius:12px;
+            font-family:'Cairo',sans-serif; font-size:14px; font-weight:800; color:#1e1b4b;
+            outline:none;
         }
-        .btn-export-admin {
-            background:#059669; color:white; border:none; border-radius:10px;
-            padding:9px 16px; font-family:'Cairo',sans-serif; font-size:13px;
-            font-weight:700; cursor:pointer; margin-right:auto;
+        .admin-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+        .btn-admin-save {
+            background:#4338ca; color:white; border:none; border-radius:12px;
+            padding:10px 16px; font-family:'Cairo',sans-serif; font-size:13px; font-weight:900; cursor:pointer;
         }
-        .btn-export-admin:hover { background:#047857; }
-        .admin-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
-        .admin-table { width:100%; border-collapse:collapse; font-size:clamp(12px,1.5vw,14px); min-width:380px; }
-        .admin-table th { background:#f5f3ff; color:#4338ca; font-weight:800; padding:10px 14px; text-align:right; white-space:nowrap; }
-        .admin-table td { padding:10px 14px; border-bottom:1px solid #f1f5f9; color:#374151; }
-        .admin-table tr:last-child td { border-bottom:none; }
-        .admin-table tr:hover td { background:#fafafa; }
-        .admin-total td { font-weight:900!important; background:#f0fdf4!important; color:#065f46!important; }
-        .no-selection { text-align:center; padding:48px 20px; color:#9ca3af; font-size:14px; }
+        .btn-admin-save:hover { background:#3730a3; }
+        .btn-admin-reset {
+            background:#f1f5f9; color:#0f172a; border:1px solid #e2e8f0; border-radius:12px;
+            padding:10px 16px; font-family:'Cairo',sans-serif; font-size:13px; font-weight:900; cursor:pointer;
+        }
+        .btn-admin-reset:hover { background:#e2e8f0; }
+        .admin-hint { color:#64748b; font-size:12px; font-weight:700; margin-top:10px; line-height:1.7; }
     </style>
 </head>
 <body>
@@ -236,26 +188,6 @@
             <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
             تسجيل الدخول بـ Google
         </button>
-
-        <div class="or-divider"><span>أو</span></div>
-
-        <button class="btn-login btn-login-admin" id="btn-show-admin-modal">
-            🛡&nbsp; دخول الأدمن
-        </button>
-    </div>
-</div>
-
-<!-- ════════ ADMIN LOGIN MODAL ════════ -->
-<div id="admin-modal">
-    <div class="modal-card">
-        <div style="font-size:40px;margin-bottom:14px">🛡</div>
-        <h2>دخول الأدمن</h2>
-        <p>أدخل بيانات حساب الأدمن<br>المسجّل على Firebase Authentication</p>
-        <input class="modal-input" type="email"    id="admin-email"    placeholder="البريد الإلكتروني" dir="ltr" autocomplete="email">
-        <input class="modal-input" type="password" id="admin-password" placeholder="كلمة المرور"       dir="ltr" autocomplete="current-password">
-        <div class="modal-error" id="admin-error">❌ بيانات خاطئة، تحقق وحاول مرة أخرى</div>
-        <button class="btn-modal-submit" id="btn-admin-submit">دخول</button>
-        <button class="btn-modal-cancel" id="btn-admin-cancel">إلغاء</button>
     </div>
 </div>
 
@@ -267,7 +199,7 @@
         <div class="sync-badge"><div class="sync-dot"></div> متزامن</div>
     </div>
     <div class="ubar-right">
-        <button class="btn-bar btn-bar-admin" id="btn-open-admin" style="display:none">🛡 لوحة الأدمن</button>
+        <button class="btn-bar btn-bar-admin" id="btn-open-admin" style="display:none">⚙️ إعدادات</button>
         <button class="btn-bar btn-bar-signout" id="btn-signout">خروج</button>
     </div>
 </div>
@@ -277,24 +209,40 @@
     <div id="root"></div>
 </div>
 
-<!-- ════════ ADMIN PANEL ════════ -->
+<!-- ════════ ADMIN PANEL (SETTINGS) ════════ -->
 <div id="admin-panel">
     <div class="admin-topbar">
-        <h1>🛡 لوحة تحكم الأدمن</h1>
+        <h1>⚙️ إعدادات الميزانية والتنبيهات</h1>
         <button class="btn-close-admin" id="btn-close-admin">✕ إغلاق</button>
     </div>
     <div class="admin-body">
-        <h2 style="font-size:15px;font-weight:800;color:#1e1b4b;margin:0 0 14px">👥 المستخدمون المسجلون</h2>
-        <div class="admin-users-grid" id="admin-users-grid">
-            <div style="color:#9ca3af;font-size:13px">جاري التحميل...</div>
-        </div>
-        <div class="admin-expenses-wrap" id="admin-expenses-wrap">
-            <div class="no-selection">👆 اختر مستخدماً من الأعلى لعرض مصروفاته</div>
+        <div class="admin-box">
+            <div class="admin-row">
+                <div class="admin-field">
+                    <label>الدخل الشهري (ج.م)</label>
+                    <input type="number" id="adm-income" value="16500" min="0" step="1" inputmode="numeric">
+                </div>
+                <div class="admin-field">
+                    <label>ميزانية المصروفات الشهرية (ج.م)</label>
+                    <input type="number" id="adm-budget" value="16500" min="0" step="1" inputmode="numeric">
+                </div>
+            </div>
+
+            <div class="admin-actions">
+                <button class="btn-admin-save" id="btn-save-settings">💾 حفظ الإعدادات</button>
+                <button class="btn-admin-reset" id="btn-reset-settings">↩︎ استرجاع الافتراضي</button>
+            </div>
+
+            <div class="admin-hint">
+                • التنبيهات متدرجة تلقائيًا عند الوصول إلى 75% ثم 85% ثم 95% من الميزانية.<br>
+                • تظهر صفحة الإعدادات للأدمن فقط.<br>
+                • هذه الإعدادات تنطبق على كل الشهور (افتراضيًا).
+            </div>
         </div>
     </div>
 </div>
 
-<!-- ════════ AUTH + ADMIN VANILLA JS ════════ -->
+<!-- ════════ AUTH + SETTINGS VANILLA JS ════════ -->
 <script>
 (function () {
     function waitFb(cb) {
@@ -309,46 +257,6 @@
         });
     });
 
-    /* Show admin modal */
-    document.getElementById('btn-show-admin-modal').addEventListener('click', function () {
-        document.getElementById('admin-modal').classList.add('show');
-        setTimeout(() => document.getElementById('admin-email').focus(), 120);
-    });
-
-    /* Close admin modal */
-    function closeModal() {
-        document.getElementById('admin-modal').classList.remove('show');
-        document.getElementById('admin-error').style.display = 'none';
-        document.getElementById('admin-email').value = '';
-        document.getElementById('admin-password').value = '';
-        document.getElementById('btn-admin-submit').disabled = false;
-        document.getElementById('btn-admin-submit').textContent = 'دخول';
-    }
-    document.getElementById('btn-admin-cancel').addEventListener('click', closeModal);
-    document.getElementById('admin-modal').addEventListener('click', function (e) {
-        if (e.target === this) closeModal();
-    });
-
-    /* Admin login submit */
-    async function doAdminLogin() {
-        const email    = document.getElementById('admin-email').value.trim();
-        const password = document.getElementById('admin-password').value;
-        const btn      = document.getElementById('btn-admin-submit');
-        const errEl    = document.getElementById('admin-error');
-        if (!email || !password) return;
-        btn.disabled = true; btn.textContent = 'جاري الدخول...';
-        errEl.style.display = 'none';
-        try {
-            await window._fb.signInWithEmailAndPassword(window._fb.auth, email, password);
-            closeModal();
-        } catch (e) {
-            errEl.style.display = 'block';
-            btn.disabled = false; btn.textContent = 'دخول';
-        }
-    }
-    document.getElementById('btn-admin-submit').addEventListener('click', () => waitFb(doAdminLogin));
-    document.getElementById('admin-password').addEventListener('keydown', e => { if (e.key === 'Enter') waitFb(doAdminLogin); });
-
     /* Auth state */
     waitFb(() => {
         window._fb.onAuthStateChanged(window._fb.auth, async (user) => {
@@ -356,10 +264,17 @@
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('user-bar').classList.add('show');
                 document.getElementById('app-screen').classList.add('show');
+
                 document.getElementById('user-name').textContent = user.displayName || user.email || '';
                 document.getElementById('user-avatar').src = user.photoURL || '';
-                if (user.uid === window._ADMIN_UID)
+
+                // show settings only for admin uid
+                if (user.uid === window._ADMIN_UID) {
                     document.getElementById('btn-open-admin').style.display = 'inline-block';
+                } else {
+                    document.getElementById('btn-open-admin').style.display = 'none';
+                }
+
                 /* save profile */
                 const { db, doc, setDoc } = window._fb;
                 setDoc(doc(db, 'users', user.uid), {
@@ -384,120 +299,68 @@
             waitFb(() => window._fb.signOut(window._fb.auth));
     });
 
-    /* ══ ADMIN PANEL ══ */
-    let selUid = null, usersData = {};
-
+    /* SETTINGS PANEL OPEN/CLOSE */
     document.getElementById('btn-open-admin').addEventListener('click', () => {
         document.getElementById('admin-panel').classList.add('show');
-        waitFb(() => loadUsers());
+        waitFb(() => window._loadSettingsIntoAdminPanel());
     });
     document.getElementById('btn-close-admin').addEventListener('click', () => {
         document.getElementById('admin-panel').classList.remove('show');
     });
 
-    async function loadUsers() {
-        const grid = document.getElementById('admin-users-grid');
-        grid.innerHTML = '<div style="color:#9ca3af;font-size:13px;padding:8px">جاري التحميل...</div>';
-        
-        // تحقق من تسجيل الدخول
-        const currentUser = window._fb.auth.currentUser;
-        if (!currentUser) {
-            grid.innerHTML = '<div style="color:#ef4444;font-size:13px">خطأ: يجب تسجيل الدخول أولاً</div>';
-            return;
-        }
-        console.log('Admin loading users, current uid:', currentUser.uid);
-        
-        try {
-            const { db, collection, getDocs, query, orderBy } = window._fb;
-            const snap = await getDocs(collection(db, 'users'));
-            console.log('Users found:', snap.size);
-            if (snap.empty) { grid.innerHTML = '<div style="color:#9ca3af;font-size:13px">لا يوجد مستخدمون بعد</div>'; return; }
-            usersData = {};
-            await Promise.all(snap.docs.map(async uDoc => {
-                const uid = uDoc.id, data = uDoc.data() || {};
-                console.log('Loading expenses for uid:', uid);
-                const eSnap = await getDocs(query(collection(db,'users',uid,'expenses'), orderBy('createdAt','desc')));
-                const expenses = eSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                usersData[uid] = {
-                    uid, name: data.displayName || 'مستخدم', email: data.email || '',
-                    expenses, total: expenses.reduce((s,e) => s+(e.amount||0), 0)
-                };
-            }));
-            renderGrid();
-        } catch (e) {
-            console.error('Admin loadUsers error:', e);
-            grid.innerHTML = `<div style="color:#ef4444;font-size:13px;padding:12px;background:#fef2f2;border-radius:8px">
-                ❌ خطأ: ${e.message}<br>
-                <small style="color:#9ca3af">راجع الـ Console للمزيد</small>
-            </div>`;
-        }
-    }
-
-    function renderGrid() {
-        document.getElementById('admin-users-grid').innerHTML =
-            Object.values(usersData).map(u => `
-                <div class="user-card ${selUid===u.uid?'active':''}" onclick="window._selUser('${u.uid}')">
-                    <div class="uname">👤 ${u.name}</div>
-                    <div class="uemail">${u.email}</div>
-                    <div class="ustats">
-                        <div class="ustat">📋 ${u.expenses.length} بند</div>
-                        <div class="ustat">💰 ${u.total.toLocaleString()} ج.م</div>
-                    </div>
-                </div>`).join('') || '<div style="color:#9ca3af">لا يوجد مستخدمون</div>';
-    }
-
-    window._selUser = uid => { selUid = uid; renderGrid(); showExpenses(uid,'الكل','الكل'); };
-
-    function showExpenses(uid, fm, fc) {
-        const wrap = document.getElementById('admin-expenses-wrap');
-        const u = usersData[uid]; if (!u) return;
-        const months = [...new Set(u.expenses.map(e=>e.date?e.date.slice(0,7):null).filter(Boolean))].sort().reverse();
-        const cats   = [...new Set(u.expenses.map(e=>e.category).filter(Boolean))];
-        const list   = u.expenses.filter(e => (fm==='الكل'||e.date?.startsWith(fm)) && (fc==='الكل'||e.category===fc));
-        const total  = list.reduce((s,e) => s+(e.amount||0), 0);
-        window._af   = { uid, fm, fc };
-        wrap.innerHTML = `
-            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
-                <h3 style="font-size:15px;font-weight:800;color:#1e1b4b;margin:0">مصروفات: ${u.name}</h3>
-                <button class="btn-export-admin" onclick="window._expCsv()">⬇ تصدير CSV</button>
-            </div>
-            <div class="admin-filters">
-                <select class="admin-select" id="af-m" onchange="window._selUser&&window.showExp('${uid}',this.value,document.getElementById('af-c').value)">
-                    <option value="الكل">كل الشهور</option>
-                    ${months.map(m=>`<option value="${m}" ${m===fm?'selected':''}>${m}</option>`).join('')}
-                </select>
-                <select class="admin-select" id="af-c" onchange="window._selUser&&window.showExp('${uid}',document.getElementById('af-m').value,this.value)">
-                    <option value="الكل">كل التصنيفات</option>
-                    ${cats.map(c=>`<option value="${c}" ${c===fc?'selected':''}>${c}</option>`).join('')}
-                </select>
-            </div>
-            <div class="admin-table-wrap">
-                <table class="admin-table">
-                    <thead><tr><th>التاريخ</th><th>الوصف</th><th>التصنيف</th><th>المبلغ</th></tr></thead>
-                    <tbody>
-                        ${list.length
-                            ? list.map(e=>`<tr><td>${e.date||'-'}</td><td>${e.title||'-'}</td><td>${e.category||'-'}</td><td style="font-weight:700;color:#4338ca">${(e.amount||0).toLocaleString()} ج.م</td></tr>`).join('')
-                            + `<tr class="admin-total"><td colspan="3">الإجمالي</td><td>${total.toLocaleString()} ج.م</td></tr>`
-                            : '<tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:28px">لا توجد بيانات</td></tr>'
-                        }
-                    </tbody>
-                </table>
-            </div>`;
-    }
-
-    window.showExp = showExpenses;
-    window._expCsv = () => {
-        const { uid,fm,fc } = window._af||{}; const u = usersData[uid]; if (!u) return;
-        const list = u.expenses.filter(e => (fm==='الكل'||e.date?.startsWith(fm))&&(fc==='الكل'||e.category===fc));
-        if (!list.length) { alert('لا توجد بيانات'); return; }
-        const total = list.reduce((s,e)=>s+(e.amount||0),0);
-        const csv = '\uFEFF'+[['التاريخ','الوصف','التصنيف','المبلغ (ج.م)'],
-            ...list.map(e=>[e.date,e.title,e.category,e.amount]),['','','الإجمالي',total]]
-            .map(r=>r.join(',')).join('\n');
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
-        a.download = `مصروفات_${u.name}_${fm}.csv`; a.click();
+    // Settings helpers
+    const DEFAULT_SETTINGS = {
+        defaultMonthlyIncome: 16500,
+        monthlyBudget: 16500,
+        notifyLevels: [75,85,95]
     };
+
+    window._loadSettingsIntoAdminPanel = async function () {
+        const user = window._fb.auth.currentUser;
+        if (!user) return;
+        const { db, doc, getDoc, setDoc } = window._fb;
+        const ref = doc(db, 'users', user.uid, 'settings', 'main');
+        const snap = await getDoc(ref);
+        let s = snap.exists() ? (snap.data() || {}) : {};
+        // bootstrap
+        if (!snap.exists()) {
+            s = { ...DEFAULT_SETTINGS, updatedAt: Date.now() };
+            await setDoc(ref, s);
+        } else {
+            // fill missing keys to keep compatibility
+            s = { ...DEFAULT_SETTINGS, ...s };
+        }
+
+        document.getElementById('adm-income').value = s.defaultMonthlyIncome ?? 16500;
+        document.getElementById('adm-budget').value = s.monthlyBudget ?? 16500;
+    };
+
+    document.getElementById('btn-reset-settings').addEventListener('click', () => {
+        document.getElementById('adm-income').value = 16500;
+        document.getElementById('adm-budget').value = 16500;
+    });
+
+    document.getElementById('btn-save-settings').addEventListener('click', () => {
+        waitFb(async () => {
+            const user = window._fb.auth.currentUser;
+            if (!user) return;
+            if (user.uid !== window._ADMIN_UID) return alert('غير مصرح');
+
+            const income = parseFloat(document.getElementById('adm-income').value || '0');
+            const budget = parseFloat(document.getElementById('adm-budget').value || '0');
+            if (!(income >= 0) || !(budget > 0)) return alert('أدخل قيم صحيحة');
+
+            const { db, doc, setDoc } = window._fb;
+            await setDoc(doc(db, 'users', user.uid, 'settings', 'main'), {
+                defaultMonthlyIncome: income,
+                monthlyBudget: budget,
+                notifyLevels: [75,85,95],
+                updatedAt: Date.now()
+            }, { merge: true });
+
+            alert('تم حفظ الإعدادات ✅');
+        });
+    });
 })();
 </script>
 
@@ -530,29 +393,69 @@ const fmtMonth = m => {
 const App = () => {
     const [expenses,setExpenses]   = useState([]);
     const [user,setUser]           = useState(null);
+
+    // settings
+    const [settings, setSettings] = useState({ defaultMonthlyIncome: 16500, monthlyBudget: 16500, notifyLevels: [75,85,95] });
+
+    // expense form
     const [title,setTitle]         = useState('');
     const [amount,setAmount]       = useState('');
     const [cat,setCat]             = useState(CATS[0]);
     const [date,setDate]           = useState(new Date().toISOString().split('T')[0]);
+
+    // filters
     const [fCat,setFCat]           = useState('الكل');
     const [fMonth,setFMonth]       = useState(now());
+
+    // ui
     const [reminder,setReminder]   = useState(false);
+    const [alertLevel, setAlertLevel] = useState(null); // 75/85/95
+    const [editExp, setEditExp] = useState(null); // expense object being edited
+    const [editTitle, setEditTitle] = useState('');
+    const [editAmount, setEditAmount] = useState('');
+    const [editCat, setEditCat] = useState(CATS[0]);
+    const [editDate, setEditDate] = useState(new Date().toISOString().split('T')[0]);
+
+    const isAdmin = !!user && user.uid === window._ADMIN_UID;
+
+    const loadSettings = async (uid) => {
+        const { db, doc, getDoc, setDoc } = window._fb;
+        const ref = doc(db, 'users', uid, 'settings', 'main');
+        const snap = await getDoc(ref);
+        const defaults = { defaultMonthlyIncome: 16500, monthlyBudget: 16500, notifyLevels: [75,85,95] };
+
+        if (!snap.exists()) {
+            const init = { ...defaults, updatedAt: Date.now() };
+            await setDoc(ref, init);
+            setSettings(init);
+        } else {
+            setSettings({ ...defaults, ...(snap.data() || {}) });
+        }
+    };
 
     useEffect(() => {
         const init = () => {
             const {auth,onAuthStateChanged,db,collection,query,orderBy,onSnapshot} = window._fb;
+
             onAuthStateChanged(auth, u => {
                 setUser(u||null);
+
+                if (window._fbUnsub) { window._fbUnsub(); window._fbUnsub = null; }
+
                 if (u) {
+                    loadSettings(u.uid).catch(()=>{});
                     const q = query(collection(db,'users',u.uid,'expenses'),orderBy('createdAt','desc'));
                     window._fbUnsub = onSnapshot(q, s => setExpenses(s.docs.map(d=>({id:d.id,...d.data()}))));
-                } else { setExpenses([]); }
+                } else {
+                    setExpenses([]);
+                    setSettings({ defaultMonthlyIncome: 16500, monthlyBudget: 16500, notifyLevels: [75,85,95] });
+                }
             });
         };
         if (window._fb) init(); else window.addEventListener('fb-ready',init,{once:true});
     },[]);
 
-    useEffect(() => { if (window.lucide) window.lucide.createIcons(); },[expenses]);
+    useEffect(() => { if (window.lucide) window.lucide.createIcons(); },[expenses, editExp, alertLevel]);
 
     useEffect(() => {
         if (new Date().getDate()===1) {
@@ -565,17 +468,66 @@ const App = () => {
 
     const months = useMemo(()=>[...new Set([...expenses.map(e=>e.date?.slice(0,7)).filter(Boolean),now()])].sort().reverse(),[expenses]);
     const filtered = useMemo(()=>expenses.filter(e=>(fMonth==='الكل'||e.date?.startsWith(fMonth))&&(fCat==='الكل'||e.category===fCat)),[expenses,fMonth,fCat]);
-    const total    = useMemo(()=>filtered.reduce((s,e)=>s+e.amount,0),[filtered]);
-    const maxExp   = useMemo(()=>filtered.length?Math.max(...filtered.map(e=>e.amount)):0,[filtered]);
-    const topCats  = useMemo(()=>{const m={};filtered.forEach(e=>{m[e.category]=(m[e.category]||0)+e.amount;});return Object.entries(m).map(([n,v])=>({n,v})).sort((a,b)=>b.v-a.v).slice(0,3);},[filtered]);
-    const chartData= useMemo(()=>{const m={};filtered.forEach(e=>{m[e.category]=(m[e.category]||0)+e.amount;});return Object.entries(m).map(([name,value])=>({name,value}));},[filtered]);
+    const total    = useMemo(()=>filtered.reduce((s,e)=>s+(e.amount||0),0),[filtered]);
+    const maxExp   = useMemo(()=>filtered.length?Math.max(...filtered.map(e=>e.amount||0)):0,[filtered]);
+    const topCats  = useMemo(()=>{const m={};filtered.forEach(e=>{m[e.category]=(m[e.category]||0)+(e.amount||0);});return Object.entries(m).map(([n,v])=>({n,v})).sort((a,b)=>b.v-a.v).slice(0,3);},[filtered]);
+    const chartData= useMemo(()=>{const m={};filtered.forEach(e=>{m[e.category]=(m[e.category]||0)+(e.amount||0);});return Object.entries(m).map(([name,value])=>({name,value}));},[filtered]);
+
+    const monthlyIncome = settings?.defaultMonthlyIncome ?? 16500;
+    const monthlyBudget = settings?.monthlyBudget ?? 16500;
+    const budgetPct = useMemo(() => monthlyBudget ? (total / monthlyBudget) * 100 : 0, [total, monthlyBudget]);
+    const remaining = useMemo(() => monthlyIncome - total, [monthlyIncome, total]);
+
+    // Progressive alerts (75/85/95) for current month only (not "all")
+    useEffect(() => {
+        if (!user) return;
+        if (!monthlyBudget || monthlyBudget <= 0) return;
+        if (fMonth === 'الكل') return;
+
+        const run = async () => {
+            const levels = (settings?.notifyLevels || [75,85,95]).slice().sort((a,b)=>a-b);
+            const pct = (total / monthlyBudget) * 100;
+            const reached = levels.filter(l => pct >= l).sort((a,b)=>b-a)[0] || null;
+            if (!reached) return;
+
+            const { db, doc, getDoc, setDoc, updateDoc } = window._fb;
+            const ref = doc(db, 'users', user.uid, 'settings', `alerts_${fMonth}`);
+            const snap = await getDoc(ref);
+
+            if (!snap.exists()) {
+                await setDoc(ref, { lastNotifiedLevel: 0, updatedAt: Date.now() });
+            }
+
+            const last = snap.exists() ? (snap.data()?.lastNotifiedLevel || 0) : 0;
+            if (reached > last) {
+                setAlertLevel(reached);
+                await updateDoc(ref, { lastNotifiedLevel: reached, updatedAt: Date.now() });
+            }
+        };
+
+        run().catch(()=>{});
+    }, [user, settings, monthlyBudget, total, fMonth]);
 
     const addExpense = async ev => {
         ev.preventDefault();
         if (!title||!amount||!user) return;
+
+        const val = parseFloat(amount);
+        if (!(val > 0)) return alert('أدخل مبلغ صحيح');
+
         const {db,collection,addDoc}=window._fb;
-        await addDoc(collection(db,'users',user.uid,'expenses'),{title,amount:parseFloat(amount),category:cat,date,createdAt:Date.now()});
-        setTitle(''); setAmount(''); setFMonth(date.slice(0,7));
+        await addDoc(collection(db,'users',user.uid,'expenses'),{
+            title,
+            amount: val,
+            category: cat,
+            date,
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+        });
+
+        setTitle('');
+        setAmount('');
+        setFMonth(date.slice(0,7));
     };
 
     const delExpense = async id => {
@@ -584,11 +536,41 @@ const App = () => {
         await deleteDoc(doc(db,'users',user.uid,'expenses',id));
     };
 
+    const openEdit = (exp) => {
+        setEditExp(exp);
+        setEditTitle(exp.title || '');
+        setEditAmount(String(exp.amount ?? ''));
+        setEditCat(exp.category || CATS[0]);
+        setEditDate(exp.date || new Date().toISOString().split('T')[0]);
+    };
+
+    const saveEdit = async () => {
+        if (!user || !editExp) return;
+
+        const val = parseFloat(editAmount);
+        if (!editTitle.trim() || !(val > 0)) return alert('أدخل بيانات صحيحة');
+
+        const { db, doc, updateDoc } = window._fb;
+        await updateDoc(doc(db,'users',user.uid,'expenses',editExp.id),{
+            title: editTitle.trim(),
+            amount: val,
+            category: editCat,
+            date: editDate,
+            updatedAt: Date.now()
+        });
+
+        setEditExp(null);
+    };
+
     const exportCsv = (tm='all') => {
         const data = tm==='all'?expenses:expenses.filter(e=>e.date?.startsWith(tm));
         if (!data.length){alert('لا توجد بيانات');return;}
-        const t=data.reduce((s,e)=>s+e.amount,0);
-        const csv='\uFEFF'+[['التاريخ','الوصف','القسم','المبلغ (ج.م)'],...data.map(e=>[e.date,e.title,e.category,e.amount]),['','','الإجمالي',t]].map(r=>r.join(',')).join('\n');
+        const t=data.reduce((s,e)=>s+(e.amount||0),0);
+        const csv='\uFEFF'+[
+            ['التاريخ','الوصف','القسم','المبلغ (ج.م)'],
+            ...data.map(e=>[e.date,e.title,e.category,e.amount]),
+            ['','','الإجمالي',t]
+        ].map(r=>r.join(',')).join('\n');
         const a=document.createElement('a');
         a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
         a.download=`مصروفات_${tm==='all'?'كاملة':tm}.csv`; a.click();
@@ -598,6 +580,27 @@ const App = () => {
     return (
         <div className="min-h-screen p-3 sm:p-4 md:p-6 lg:p-8 xl:p-10">
             <div className="max-w-screen-xl mx-auto space-y-4 sm:space-y-5 lg:space-y-6">
+
+                {alertLevel && fMonth !== 'الكل' && (
+                    <div className="bg-rose-50 border-2 border-rose-200 p-4 sm:p-5 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-rose-600 text-white rounded-2xl flex items-center justify-center flex-shrink-0">
+                                <Icon name="triangle-alert" size={20}/>
+                            </div>
+                            <div>
+                                <h3 className="text-rose-900 font-black text-sm">تنبيه ميزانية!</h3>
+                                <p className="text-rose-700 text-xs font-bold">
+                                    وصلت إلى {alertLevel}% من الميزانية في شهر {fmtMonth(fMonth)}.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex gap-2 flex-shrink-0">
+                            <button onClick={()=>setAlertLevel(null)} className="bg-white text-rose-700 border border-rose-200 px-4 py-2 rounded-xl font-black text-xs hover:bg-rose-100">
+                                فهمت
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {reminder && (
                     <div className="bg-amber-50 border-2 border-amber-200 p-4 sm:p-5 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -616,16 +619,17 @@ const App = () => {
                 )}
 
                 {/* Stats Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 sm:gap-4">
+
                     <div className="bg-white p-4 sm:p-5 lg:p-6 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-100 flex flex-col justify-between min-h-[100px]">
                         <div className="flex items-center justify-between">
                             <h1 className="text-sm sm:text-base lg:text-lg font-black text-slate-800 flex items-center gap-2">
-                                <Icon name="layout-dashboard" className="text-indigo-600" size={20}/>ميزانية المنزل
+                                <Icon name="layout-dashboard" className="text-indigo-600" size={20}/>الشهر
                             </h1>
                             <button onClick={()=>exportCsv('all')} className="p-2 bg-slate-50 text-slate-400 rounded-xl hover:text-emerald-600 hover:bg-emerald-50 transition-all"><Icon name="download" size={16}/></button>
                         </div>
                         <div className="mt-3">
-                            <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">الشهر المختار</p>
+                            <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">المحدد</p>
                             <p className="text-xs sm:text-sm lg:text-base font-bold text-indigo-900">{fmtMonth(fMonth)}</p>
                         </div>
                     </div>
@@ -639,16 +643,44 @@ const App = () => {
                         </div>
                     </div>
 
+                    <div className="bg-emerald-600 p-4 sm:p-5 lg:p-6 rounded-2xl sm:rounded-3xl text-white shadow-lg shadow-emerald-100 flex flex-col justify-center">
+                        <span className="text-[9px] sm:text-[10px] font-black opacity-80 uppercase tracking-widest">الدخل الشهري</span>
+                        <div className="text-2xl sm:text-3xl lg:text-4xl font-black leading-none my-1">{monthlyIncome.toLocaleString()} <span className="text-sm font-normal">ج.م</span></div>
+                        <div className="mt-2 pt-2 border-t border-emerald-400/30 flex justify-between text-xs">
+                            <span className="font-bold opacity-80">المتبقي:</span>
+                            <span className="font-black">{remaining.toLocaleString()} ج.م</span>
+                        </div>
+                    </div>
+
                     <div className="bg-white p-4 sm:p-5 lg:p-6 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-100">
-                        <h3 className="text-[10px] font-black text-slate-400 uppercase mb-3 flex items-center gap-1">
-                            <Icon name="trending-up" size={12} className="text-pink-500"/>أعلى 3 فئات
+                        <h3 className="text-[10px] font-black text-slate-400 uppercase mb-2 flex items-center gap-1">
+                            <Icon name="trending-up" size={12} className="text-pink-500"/>استهلاك الميزانية
                         </h3>
-                        <div className="space-y-2 sm:space-y-2.5">
+
+                        <div className="text-xs font-black text-slate-700 flex items-center justify-between mb-2">
+                            <span>الميزانية:</span>
+                            <span className="text-indigo-700">{monthlyBudget.toLocaleString()} ج.م</span>
+                        </div>
+
+                        <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                                className={`h-full ${budgetPct>=95?'bg-rose-600':budgetPct>=85?'bg-orange-500':budgetPct>=75?'bg-amber-500':'bg-emerald-500'}`}
+                                style={{ width: `${Math.min(100, Math.max(0, budgetPct))}%` }}
+                            ></div>
+                        </div>
+
+                        <div className="mt-2 text-[11px] font-black text-slate-500 flex justify-between">
+                            <span>{budgetPct.toFixed(1)}%</span>
+                            <span>{Math.max(0, monthlyBudget - total).toLocaleString()} ج.م متبقي من الميزانية</span>
+                        </div>
+
+                        <div className="mt-3 space-y-2 sm:space-y-2.5">
+                            <div className="text-[10px] font-black text-slate-400 uppercase">أعلى 3 فئات</div>
                             {topCats.length>0?topCats.map((c,i)=>(
                                 <div key={c.n} className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <span className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center bg-slate-100 text-[9px] sm:text-[10px] font-black rounded-full text-slate-500">{i+1}</span>
-                                        <span className="text-xs sm:text-sm font-bold text-slate-700 truncate max-w-[100px] sm:max-w-[130px]">{c.n}</span>
+                                        <span className="text-xs sm:text-sm font-bold text-slate-700 truncate max-w-[120px]">{c.n}</span>
                                     </div>
                                     <span className="text-xs sm:text-sm font-black text-indigo-600 flex-shrink-0">{c.v.toLocaleString()} <span className="text-[9px] font-normal text-slate-400">ج.م</span></span>
                                 </div>
@@ -663,9 +695,17 @@ const App = () => {
                     {/* Form */}
                     <div className="lg:col-span-4">
                         <div className="bg-white p-4 sm:p-5 lg:p-6 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-100 lg:sticky lg:top-16">
-                            <h2 className="text-sm sm:text-base lg:text-lg font-bold mb-4 flex items-center gap-2 text-slate-800">
-                                <Icon name="plus-circle" className="text-indigo-500" size={18}/>إضافة بند
-                            </h2>
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-sm sm:text-base lg:text-lg font-bold flex items-center gap-2 text-slate-800">
+                                    <Icon name="plus-circle" className="text-indigo-500" size={18}/>إضافة مصروف
+                                </h2>
+                                {isAdmin && (
+                                    <span className="text-[10px] font-black text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded-xl">
+                                        وضع الأدمن
+                                    </span>
+                                )}
+                            </div>
+
                             <form onSubmit={addExpense} className="space-y-3">
                                 <div>
                                     <label className="text-xs font-bold text-slate-400 block mb-1">وصف المصروف</label>
@@ -752,10 +792,15 @@ const App = () => {
                                         </div>
                                         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                                             <div className="text-left">
-                                                <div className="text-sm sm:text-lg font-black text-slate-800">{exp.amount.toLocaleString()}</div>
+                                                <div className="text-sm sm:text-lg font-black text-slate-800">{(exp.amount||0).toLocaleString()}</div>
                                                 <div className="text-[9px] text-slate-400 font-bold uppercase">جنية</div>
                                             </div>
-                                            <button onClick={()=>delExpense(exp.id)} className="p-1.5 text-slate-200 hover:text-red-500 transition-colors">
+
+                                            <button onClick={()=>openEdit(exp)} className="p-1.5 text-slate-200 hover:text-indigo-500 transition-colors" title="تعديل">
+                                                <Icon name="pencil" size={17}/>
+                                            </button>
+
+                                            <button onClick={()=>delExpense(exp.id)} className="p-1.5 text-slate-200 hover:text-red-500 transition-colors" title="حذف">
                                                 <Icon name="x-circle" size={17}/>
                                             </button>
                                         </div>
@@ -767,6 +812,50 @@ const App = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Edit Modal */}
+                {editExp && (
+                    <div className="fixed inset-0 z-[3000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={()=>setEditExp(null)}>
+                        <div className="bg-white w-full max-w-md rounded-3xl p-5 sm:p-6 shadow-2xl border border-slate-100" onClick={(e)=>e.stopPropagation()}>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-black text-slate-800 text-sm">✏️ تعديل المصروف</h3>
+                                <button className="text-slate-400 hover:text-slate-700" onClick={()=>setEditExp(null)}>✕</button>
+                            </div>
+
+                            <div className="space-y-3">
+                                <div>
+                                    <label className="text-xs font-bold text-slate-400 block mb-1">الوصف</label>
+                                    <input value={editTitle} onChange={e=>setEditTitle(e.target.value)} className="w-full p-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-800 text-sm"/>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-slate-400 block mb-1">المبلغ (ج.م)</label>
+                                    <input type="number" inputMode="decimal" value={editAmount} onChange={e=>setEditAmount(e.target.value)} className="w-full p-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 font-black text-xl text-indigo-900"/>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-slate-400 block mb-1">التصنيف</label>
+                                    <select value={editCat} onChange={e=>setEditCat(e.target.value)} className="w-full p-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none font-bold cursor-pointer text-slate-700 text-sm">
+                                        {CATS.map(c=><option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-slate-400 block mb-1">التاريخ</label>
+                                    <input type="date" value={editDate} onChange={e=>setEditDate(e.target.value)} className="w-full p-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none font-bold text-slate-700 text-sm"/>
+                                </div>
+
+                                <div className="flex gap-2 pt-2">
+                                    <button onClick={saveEdit} className="flex-1 py-3 bg-indigo-600 text-white font-black rounded-2xl shadow-lg hover:bg-indigo-700 active:scale-95 transition-all text-sm">
+                                        حفظ التعديل
+                                    </button>
+                                    <button onClick={()=>setEditExp(null)} className="px-4 py-3 bg-white border border-slate-200 text-slate-700 font-black rounded-2xl hover:bg-slate-50 text-sm">
+                                        إلغاء
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                )}
+
             </div>
         </div>
     );
